@@ -8,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from common import IST, yesterday, today
+from common import IST, yesterday, today, logger
 from contracts import get_req_contracts
 from db_ops import DBHandler
 
@@ -24,11 +24,13 @@ class ServiceApp:
         self.add_routes()
         self.symbol_expiry_map = None
         self.use_otm_iv = True
+        self.copy_symbol_expiry_map = None
 
     def add_routes(self):
         self.app.add_api_route('/', methods=['GET'], endpoint=self.default)
         self.app.add_api_route('/symbol', methods=['GET'], endpoint=self.get_symbols)
         self.app.add_api_route('/straddle/minima', methods=['GET'], endpoint=self.fetch_straddle_minima)
+        self.app.add_api_route('/straddle/minima/table', methods = ['GET'], endpoint = self.fetch_straddle_minima_table) #NEW
         self.app.add_api_route('/straddle/iv', methods=['GET'], endpoint=self.fetch_straddle_iv)
         self.app.add_api_route('/straddle/cluster', methods=['GET'], endpoint=self.fetch_straddle_cluster)
 
@@ -44,18 +46,117 @@ class ServiceApp:
             agg = ins_df[ins_df['instrument_type'].isin(['CE', 'PE'])].groupby(['name'], as_index=False).agg({'expiry': set, 'tradingsymbol': 'count'})
             agg['expiry'] = agg['expiry'].apply(lambda x: sorted(list(x)))
             self.symbol_expiry_map = agg.to_dict('records')
+            self.copy_symbol_expiry_map = self.symbol_expiry_map.copy()
         return self.symbol_expiry_map
 
     def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None), interval: int = Query(5), cont: bool = Query(False)):
+        logger.info(f'inside fetch_straddle_minima and cont is {cont}')
         if cont:
             df = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
             df['prev'] = df['ts'] < today
+            logger.info(f'fetch straddle with 1 {symbol} {expiry}')
         else:
             df = DBHandler.get_straddle_minima(symbol, expiry)
             df['prev'] = False
+            logger.info(f'fetch straddle with 2 {symbol} {expiry}')
         if self.use_otm_iv:
             df['combined_iv'] = df['otm_iv']
+        logger.info(f'\nstraddle_minima df is \n {df}')
         return self._straddle_response(df, count=st_cnt, interval=interval)
+    
+    # def fetch_straddle_minima_table(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None), interval: int = Query(1), cont: bool = Query(False), table: bool = Query(True)):
+    #     # table = True
+    #     logger.info(f'inside fetch_straddle_minima_table and cont is {cont} and table is {table}')
+    #     # cont = False
+    #     # if cont:
+    #     #     df = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
+    #     #     df['prev'] = df['ts'] < today
+    #     #     logger.info(f'fetch straddle table with {symbol} {expiry}')
+    #     # else:
+    #     #     df = DBHandler.get_straddle_minima(symbol, expiry, table)
+    #     #     df['prev'] = False
+    #     #     logger.info(f'fetch straddle table with {symbol} {expiry} and table flag is {table}')
+    #     # if self.use_otm_iv:
+    #     #     df['combined_iv'] = df['otm_iv']
+    #     # return self._straddle_response(df, count=st_cnt, interval=interval, table=table)
+
+    #     # df = DBHandler.get_straddle_minima(symbol, expiry, table)
+    #     json_resp = DBHandler.get_straddle_minima_table(symbol, expiry)
+
+    #     # df['prev'] = False
+    #     # if self.use_otm_iv:
+    #     #     df['combined_iv'] = df['otm_iv']
+    #     logger.info(f'\nget_straddle_table_json is\n {json_resp}')
+    #     # df_json = df.to_json()
+    #     # logger.info(f'\n df to json is {df_json}')
+    #     # df_json = df.to_dict('records')
+    #     return json_resp
+    
+    def fetch_straddle_minima_table(self, st_cnt: int = Query(default=None), interval: int = Query(1), cont: bool = Query(False), table: bool = Query(True)):
+        if self.copy_symbol_expiry_map:
+            logger.info(f'\nsym exp map is {self.copy_symbol_expiry_map}')
+            for_table = []
+            for i in range(len(self.copy_symbol_expiry_map)):
+            #     print(f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
+                logger.info(f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
+                name = self.copy_symbol_expiry_map[i]['name']; sorted_exp = sorted(self.copy_symbol_expiry_map[i]['expiry'])
+                if name == 'NIFTY':
+                    new_exp = sorted_exp[:2]
+                    dict_1 = {'NIFTY_CW':new_exp[0], 'NIFTY_NW':new_exp[1]}
+                    for_table.append(dict_1)
+                elif name == 'BANKNIFTY':
+                    new_exp = sorted_exp[:2]
+                    dict_1 = {'BANKNIFTY_CW':new_exp[0], 'BANKNIFTY_NW':new_exp[1]}
+                    for_table.append(dict_1)
+                elif name == 'FINNIFTY':
+                    dict_1 = {'FINNIFTY': sorted_exp[0]}
+                    for_table.append(dict_1)
+                else:
+                    new_exp = sorted_exp[0]
+                    dict_1 = {'MIDCPNIFTY':new_exp}
+                    for_table.append(dict_1)
+            # print('\n for table dict is ', for_table)
+            logger.info(f'\nfor_table dict is {for_table}')
+
+            final_json = []
+            for i in for_table:
+                for symbol, expiry in i.items():
+                    # print(f'\n key{count} is {key} and value{count} is {value}')
+                    logger.info((f'\n original key is {symbol} and value is {expiry}'))
+                    if symbol.startswith('NIFTY'):
+                        symbol1 = 'NIFTY'
+                    elif symbol.startswith('BANK'):
+                        symbol1 = 'BANKNIFTY'
+                    elif symbol.startswith('FIN'):
+                        symbol1 = 'FINNIFTY'
+                    else:
+                        symbol1 = 'MIDCPNIFTY'
+                    logger.info(f'\n changed key is {symbol1} and value is {expiry}')
+                    list_dict_resp = DBHandler.get_straddle_minima_table(symbol1, expiry)
+                    logger.info(f'\nlist_dict_resp is {list_dict_resp}')
+                    # if symbol.startswith('NIFTY_CW'):
+                    #     symbol2 = 'NF CW'
+                    # elif symbol.startswith('BANKNIFTY_CW'):
+                    #     symbol2 = 'BN CW'
+                    # elif symbol.startswith('FINNIFTY'):
+                    #     symbol2 = 'FN CW'
+                    # elif symbol.startswith('MIDCPNIFTY'):
+                    #     symbol2 = 'MN CW'
+                    # elif symbol.startswith('NIFTY_NW'):
+                    #     symbol2 = 'NF NW'
+                    # elif symbol.startswith('BANKNIFTY_NW'):
+                    #     symbol2 = 'BN NW'
+                    new_dict = {symbol:list_dict_resp}
+                    logger.info(f'\nnew_dict is {new_dict}')
+                    final_json.append(new_dict)
+                    logger.info(f'\nmaking final json resp- {final_json}')
+        
+            logger.info(f'\nFINAL JSON RESP IS {final_json}')
+            # df_json = df.to_json()
+            # logger.info(f'\n df to json is {df_json}')
+            # df_json = df.to_dict('records')
+            # self.copy_symbol_expiry_map = None
+            return final_json
 
     def fetch_straddle_iv(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None), interval: int = Query(5)):
         df = DBHandler.get_straddle_iv_data(symbol, expiry)
@@ -122,15 +223,34 @@ class ServiceApp:
                 df = df[df['ts'].isin(valid_ts)].copy()
         if raw:
             return df
+        logger.info(f'straddle response df is \n {df.head()}')
         return self.df_response(df, to_millis=['ts'])
 
     @staticmethod
     def df_response(df: pd.DataFrame, to_millis: list = None) -> list[dict]:
         df = df.replace({np.NAN: None}).round(2)
+        dict1 = df.to_dict('records')
+        logger.info(f'\ndf_response_dict1[0] before epoch conversion is {dict1[0]}')
+        
+        #converting local time to unix time
         if to_millis is not None and len(to_millis) and len(df):
             for _col in to_millis:
-                df[_col] = (df[_col].dt.tz_localize(IST).astype('int64') // 10**9) * 1000
+                df[_col] = (df[_col].dt.tz_localize(IST).astype('int64') // 10**9) * 1000 
+                
+        dict2 = df.to_dict('records')
+        logger.info(f'\ndf_response_dict1[0] after epoch conversion is {dict2[0]}')
+        # for _key, _value in dict1[0].items():
+        #     print(f'\n1st line of dftodict is {_key}:{_value}')
+        # count = 0
+        # for _entity in dict1[0]:
+        #     for _key, _value in _entity.items():
+        #         logger.info(f'\n1st line of dftodict is {_key}:{_value}')
+        #         if count == 0:
+        #             break
+        # logger.info(f'dict1 is {dict1}')
         return df.to_dict('records')
+    # response is LIST OF DICTIONARIES
+    # sample response = {"ts":1714384740000,"strike":22700.0,"combined_premium":190.1,"combined_iv":11.52,"otm_iv":11.52,"prev":false}
 
 
 service = ServiceApp()
@@ -138,4 +258,4 @@ app = service.app
 
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host='0.0.0.0', port=8501, workers=2)
+    uvicorn.run('app:app', host='172.16.47.81', port=8601, workers=2)

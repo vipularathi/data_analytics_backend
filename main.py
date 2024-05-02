@@ -11,10 +11,15 @@ from zerodha import initiate_session, zws_wrapper
 
 
 def main():
-    choice = str(input("Enter broker(zerodha/XTS): ")).lower()
+    # choice = str(input("Enter broker(zerodha/XTS): ")).lower()
+    print('\n taking zerodha as choice')
+    logger.info('\nTAKING ZERODHA AS CHOICE')
+    choice = 'zerodha'
 
     workers = max(os.cpu_count(), 4)
     logger.info(f'Max workers: {workers}. Main Pid: {os.getpid()}')
+
+    # update_symbol_excel
 
     with ProcessPoolExecutor(max_workers=workers, mp_context=get_context('spawn')) as executor:
         if choice == "xts":
@@ -25,6 +30,7 @@ def main():
 
         ins_df, tokens, token_xref = get_req_contracts()
         logger.info(f'Entities for broadcast: {len(tokens)}')
+        print(f'\nGot instrument_df, token and token_xref and length of broadcast is {len(tokens)}')
 
         mp = Manager()
         # hist_flag = mp.Event()  # Moved to per instance
@@ -32,6 +38,11 @@ def main():
 
         # common dictionary
         latest_feed_xref = mp.dict({_entity: {} for _token, _entity in token_xref.items()})  # Shared Among different
+        count = 0
+        for _token, _entity in token_xref.items():
+            logger.info(f'\n1st line of latest feed xref is {_token}:{_entity}')
+            if count == 0:
+                break
 
         # Initialize Pipe Objects
         candle_receiver, candle_send = Pipe(duplex=False)

@@ -8,15 +8,15 @@ from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from common import today
 
 
-use_sqlite = False  # Used in Table DDL as well
+use_sqlite = False  # Used in Table DDL as well  #use
 rdbms_type = 'postgres'
 
 # db_name = f'data_{today.strftime(dt_fmt_1)}'
-db_name = f'data_arathi'
+db_name = f'data_arathi_9_apr_2024'
 pg_user = 'postgres'
-pg_pass = 'E6ymrG80or51s7y'
+pg_pass = 'root'
 pg_host = 'localhost'
-engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:5432/{db_name}"
+engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:5432/{db_name}" #use
 temp_engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:5432"
 with create_engine(temp_engine_str, isolation_level='AUTOCOMMIT').connect() as conn:
     res = conn.execute(f"select * from pg_database where datname='{db_name}';")

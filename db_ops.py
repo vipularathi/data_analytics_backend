@@ -30,6 +30,7 @@ def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, i
     """
     st = time()
     logger.debug(f'Data Insertion started for {table.name}')
+    logger.info(f'Data Insertion started for {table.name}')
     # engine_con_str = engine_address if engine_address is not None else engine_str
     # engine = sql.create_engine(engine_con_str)
     ins = table.insert()
@@ -60,6 +61,7 @@ def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, i
         conn.close()
 
     logger.debug(f"Data Inserted in {table.name} in: {time() - st} secs")
+    logger.info(f"Data Inserted in {table.name} in: {time() - st} secs")
 
 
 def insert_data_df(table, data: pd.DataFrame, truncate=False):
@@ -99,6 +101,7 @@ def execute_query(query, retry=2, wait_period=5, params=None):
 def read_sql_df(query, params=None, commit=False):
     st = time()
     # logger.debug(f"Reading query..{query[:int(len(query)*0.25)]}...")
+    logger.info(f"Reading query..{query[:int(len(query)*0.25)]}...")
     # engine = sql.create_engine(engine_str)
     conn = pool.connect()
     df = pd.read_sql(query, conn, params=params)
@@ -107,8 +110,29 @@ def read_sql_df(query, params=None, commit=False):
     conn.close()
     # engine.dispose()
     # logger.debug(f'Data read in {time() - st} secs')
+    logger.info(f'Data read in {time() - st} secs')
     return df
 
+
+def calculate_table_data(df):
+    df1 = df.copy()
+    live = (df1['combined_premium'].iloc[-1]).round(2)
+    max_straddle = (df1['combined_premium'].max()).round(2)
+    min_straddle = (df1['combined_premium'].min()).round(2)
+    live_min = (live - min_straddle).round(2)
+    max_live = (max_straddle - live).round(2)
+    ret_dict = [{
+        'Live':live,
+        'Live-Min':live_min,
+        'Max-Live':max_live,
+        'Max':max_straddle,
+        'Min':min_straddle
+    }]
+    logger.info(f'\nret_dict is {ret_dict}')
+    # ret_df = pd.DataFrame.from_dict(ret_dict)
+    # dict_to_json = [{i:ret_dict[i]} for i in ret_dict]
+    # logger.info(f'\n dict_to_json is {dict_to_json}')
+    return ret_dict
 
 class DBHandler:
 
@@ -124,6 +148,7 @@ class DBHandler:
 
     @classmethod
     def insert_snap_data(cls, db_data: list[dict]):
+        logger.info('insert_snap>insert_data')
         insert_data(s_tbl_snap, db_data, ignore=True)
 
     @classmethod
@@ -144,14 +169,38 @@ class DBHandler:
         insert_data(s_tbl_opt_straddle, db_data, ignore=True)
 
     @classmethod
-    def get_straddle_minima(cls, symbol, expiry, start_from=today):
+    def get_straddle_minima(cls, symbol, expiry, start_from=today, table: bool=False):
+        logger.info('get_straddle_minima')
         query = f"""
             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv
             FROM {n_tbl_opt_straddle}
             WHERE underlying=%(symbol)s and expiry=%(expiry)s and minima=true and "timestamp">='{start_from}';
         """
         df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry})
-        return df
+
+        if table:
+            logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
+            logger.info(f"\nLive is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
+            logger.info('\n df sent for trucation')
+            table_df = calculate_table_data(df)
+            return table_df
+        else:
+            return df
+        # return df
+    
+    @classmethod
+    def get_straddle_minima_table(cls, symbol, expiry, start_from=today):
+        query = f"""
+            SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, combined_premium
+            FROM {n_tbl_opt_straddle}
+            WHERE underlying=%(symbol)s and expiry=%(expiry)s and minima=true and "timestamp">='{start_from}';
+        """
+        df = read_sql_df(query, params={'symbol':symbol, 'expiry':expiry})
+        logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
+        logger.info(f"\nLive is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
+        logger.info('\n df sent for trucation')
+        table_dict = calculate_table_data(df)
+        return table_dict
 
     @classmethod
     def get_straddle_iv_data(cls, symbol, expiry, start_from=today):

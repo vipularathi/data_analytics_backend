@@ -6,6 +6,7 @@ from time import time
 
 import pandas as pd
 import requests
+import csv
 
 from common import logger, instruments_path, today, root_dir
 
@@ -78,7 +79,17 @@ def get_req_contracts():
     entity_filter = reduce(partial(lambda x, y: x | y), der_filters)
     req = nse_ins[entity_filter].copy()
     tokens = req['instrument_token'].tolist()
+
+    #token_xref is token:symbol where token is instrument token and symbol is theinstrument corresponding to that token
     token_xref = req[['instrument_token', 'tradingsymbol']].set_index('instrument_token').to_dict()['tradingsymbol']
+
+    # print(f'\n type of token_xref is {type(token_xref)}')
+    # print(f'\n token_xref keys is {token_xref.keys()}')
+    # req.to_csv('req_csv.csv')
+    #
+    # with open('token_csv.csv', 'w') as c:
+    #     w = csv.writer(c)
+    #     w.writerow(tokens)
     return req, tokens, token_xref
 
 
@@ -89,3 +100,6 @@ def entity_expiry():
     req = symbols.groupby(['symbol']).agg({'expiry': set})
     req['expiry'] = req['expiry'].apply(list)
     return req.to_dict('index')
+
+# req, tokens, token_xref = get_req_contracts()
+# print(f'req is {req} \t tokens is {tokens} \t token_xref is {token_xref}')

@@ -86,11 +86,13 @@ class SnapAnalysis:
     def run_analysis(self, calc=True):
         dt = datetime.now(tz=pytz.timezone('Asia/Kolkata')).replace(microsecond=0)
         xref = self.shared_xref.copy()
-        logger.info(len(xref))
+        logger.info(f'length of token_xref is {len(xref)}')
         data = {'timestamp': dt.isoformat(), 'snap': xref}
         db_data = json.loads(json.dumps(data, default=str))
         if self.insert:
             DBHandler.insert_snap_data([db_data])
+            print('snap data inserted')
+            logger.info('snap data inserted')
 
         if calc:
             logger.info(f'calc values for {dt}')
@@ -204,7 +206,10 @@ class SnapAnalysis:
 
 
 def start_analysis(ins_df, tokens, token_xref, shared_xref):
+    print('inside analysis>start_analysis')
     try:
+        print('calling snapanalysis class with data')
+        logger.info('calling snapanalysis class with data')
         SnapAnalysis(ins_df, tokens, token_xref, shared_xref, use_forward_fut=True, rate=0)
 
         while True:
