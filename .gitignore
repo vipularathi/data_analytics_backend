@@ -3,10 +3,10 @@
 entity_data
 logs
 test*.py
-*.xlsx
 venv
+.venv
 *.zip
 *.ipynb
 extra
 *.csv
-*.whl
+
