@@ -9,6 +9,7 @@ import requests
 import csv
 
 from common import logger, instruments_path, today, root_dir
+from update_expiry import update_expiry, status
 
 renames = {'NIFTY 50': 'NIFTY', 'NIFTY BANK': 'BANKNIFTY', 'NIFTY IT': 'NIFTYIT',
            'NIFTY FINANCIAL SERVICES': 'FINNIFTY', 'NIFTY FIN SERVICE': 'FINNIFTY',
@@ -96,7 +97,12 @@ def get_req_contracts():
 def entity_expiry():
     symbols = pd.read_excel(os.path.join(root_dir, 'symbols.xlsx'))
     if not symbols[symbols['expiry'] < today].empty:
-        raise ValueError('Expired contracts filled')
+        # status_new = update_expiry()
+        if status:
+            logger.info('\n expiry file updated')
+        else:
+            raise ValueError('Expired contracts filled')
+
     req = symbols.groupby(['symbol']).agg({'expiry': set})
     req['expiry'] = req['expiry'].apply(list)
     return req.to_dict('index')
