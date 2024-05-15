@@ -20,7 +20,7 @@ def update_expiry():
     current_month = datetime.now().month
     logger.info(f'\n current month is {current_month}')
     n_cur_exp, n_nxt_exp, n_nxt_nxt_exp = [], [], []
-    bn_cur_exp,bn_nxt_exp = [], []
+    bn_cur_exp, bn_nxt_exp = [], []
     fn_cur_exp, fn_nxt_exp = [], []
     mcn_cur_exp, mcn_nxt_exp = [], []
     for i in range(len(master_df)):
@@ -101,7 +101,4 @@ def update_expiry():
     logger.info('\n expiry file updated')
     print('done')
     return(True)
-
-status = update_expiry()
-# print(status)
 
