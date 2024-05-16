@@ -95,7 +95,7 @@ def get_req_contracts():
 
 
 def entity_expiry():
-    symbols = pd.read_excel(os.path.join(root_dir, 'symbols1.xlsx'))
+    symbols = pd.read_excel(os.path.join(root_dir, 'symbols.xlsx'))
     if not type(symbols['expiry'][0]) == type(pd.to_datetime(symbols['expiry'][0])):
         symbols['expiry'] = pd.to_datetime(symbols['expiry'], dayfirst=True)
     if not symbols[symbols['expiry'] < today].empty:
