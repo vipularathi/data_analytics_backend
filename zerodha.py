@@ -13,8 +13,8 @@ from data_handler import DataHandler, init_candle_creator
 manual = False
 api_key = '8a6f62gf3y0ei7o9'
 token_url = 'https://api.tradeclue.com/v1/z_token'
-# z_token = requests.get(token_url, timeout=10).json()['z_token']
-z_token = ""
+z_token = requests.get(token_url, timeout=10).json()['z_token']
+# z_token = "QJhbEKEn4i8gX94htJGieX4bC2mCciCD"
 api_access_token = z_token
 
 
