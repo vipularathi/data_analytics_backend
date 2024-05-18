@@ -22,12 +22,12 @@ holidays = holidays_23 + holidays_24  # List of date objects
 b_days = pd.bdate_range(start=datetime.now()-relativedelta(months=3), end=datetime.now(), freq='C', weekmask='1111100',
                         holidays=holidays)
 b_days = b_days.append(pd.DatetimeIndex([pd.Timestamp(year=2024, month=1, day=20), pd.Timestamp(year=2024, month=3, day=2),
-                                         pd.Timestamp(year=2024, month=5, day=4),
+                                         pd.Timestamp(year=2024, month=5, day=4), pd.Timestamp(year=2024, month=5, day=18),
     pd.Timestamp(year=2024, month=6, day=1), pd.Timestamp(year=2024, month=7, day=6), pd.Timestamp(year=2024, month=8, day=3),
                                          pd.Timestamp(year=2024, month=9, day=14),
                                          pd.Timestamp(year=2024, month=10, day=5),
     pd.Timestamp(year=2024, month=11, day=9), pd.Timestamp(year=2024, month=12, day=7)]))
-# May 4, 2024
+# May 4, 2024cls
 # June 1, 2024
 # July 6, 2024
 # August 3, 2024

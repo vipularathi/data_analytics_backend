@@ -62,7 +62,7 @@ def copy_table(db_copy_from, db_copy_to, table_name):
         else:
             desired_date = pd.to_datetime(desired_date).strftime('%Y-%m-%d')
             print(f'desired date is {desired_date}')
-            query = f"select * from {table_name} where date(timestamp) = '{desired_date}' and minima=true order by id"
+            query = f"select * from {table_name} where date(timestamp) = '{desired_date}' order by id"
 
         # Read data from the remote table into a pandas DataFrame
         df = pd.read_sql(query, remote_engine)

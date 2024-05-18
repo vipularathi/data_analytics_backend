@@ -55,15 +55,12 @@ class ServiceApp:
         if msg:
             # if not data.get("active", False):
             #     return False, "user is inactive"
-
             if data['email'] == 'test@rathi.com' and data['password'] in ['test']:
                 return True, data
-
             # hashed_password = data.get("pwd", '')
             # if not pwd_context.verify(user.password, hashed_password):
             #     return False, 'Incorrect Password'
-
-            return True, data
+            # return True, data
         else:
             return False, "User not exist"
 
@@ -320,4 +317,5 @@ service = ServiceApp()
 app = service.app
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host='172.16.47.81', port=8601, workers=2)
+    # uvicorn.run('app:app', host='172.16.47.81', port=8601, workers=2)
+    uvicorn.run('app:app', host='0.0.0.0', port=8501, workers=2)

@@ -9,15 +9,29 @@ from contracts_old import get_req_contracts
 from feed import connect_socket
 from xts_connect import socket_url, access_token, subscribe_index, user_id, login
 from zerodha import initiate_session, zws_wrapper
+import xts_main
 
 
 def main():
+    #xts_zerodha_choice
+    # choice = str(input('Enter broker choice(zerodha/XTS): ')).lower() #new
+    logger.info('\n taking xts as choice') #new
+    # choice = 'xts' #new
+    choice = 'zerodha'
+
     workers = max(os.cpu_count(), 4)
     logger.info(f'Max workers: {workers}. Main Pid: {os.getpid()}')
     with ProcessPoolExecutor(max_workers=workers, mp_context=get_context('spawn')) as executor:
-        client = initiate_session()
+        if choice == 'xts': #new
+            access_token, headers, userids, ch = xts_main.get_token_header() #new
+            #connection to XTS - return access tokens, headers, userid, choice(subs/unsubs)
+        else:
+            client = initiate_session() #new
+
+        # client = initiate_session()
         ins_df, tokens, token_xref = get_req_contracts()
         logger.info(f'Entities for broadcast: {len(tokens)}')
+        logger.info(f'\n Got instrument_df, token and token_xref and length of broadcast is {len(tokens)}')
 
         mp = Manager()
         # hist_flag = mp.Event()  # Moved to per instance
@@ -32,10 +46,26 @@ def main():
         # noinspection PyTypeChecker
         data_processor = executor.submit(start_analysis, ins_df, tokens, token_xref, shared_xref=latest_feed_xref)  # NOSONAR
 
+        if choice == 'xts': #new
+            # divide entities into tokens
+            ins_df_list = xts_main.split_into_tokens(access_tokens, ins_df)     # ins_df_list[i] is a Dataframe #new
+            xts_main.subscribe_init(tokens=access_tokens, headers=headers, ch=ch, df=ins_df_list)  # subscribe #new
+
+            xts_token_xref = ins_df.set_index('exchange_token')['tradingsymbol'].to_dict()#new
+            if ch == 'subs': #new
+                for i in range(len(access_tokens)): #new
+                    # push data for each token
+                    executor.submit(xts_main.xts_wrapper, tokens, token_xref, [], access_tokens[i], userids[i], candle_send,
+                                    latest_feed_xref=latest_feed_xref, xts_token_xref=xts_token_xref) #new
+        else:
+            # noinspection PyTypeChecker
+            executor.submit(zws_wrapper, tokens, token_xref, [], client, candle_send,
+                    name=1, latest_feed_xref=latest_feed_xref)
+
         # Initialize Broadcast
         # noinspection PyTypeChecker
-        executor.submit(zws_wrapper, tokens, token_xref, [], client, candle_send,
-                        name=1, latest_feed_xref=latest_feed_xref)
+        # executor.submit(zws_wrapper, tokens, token_xref, [], client, candle_send,
+        #                 name=1, latest_feed_xref=latest_feed_xref)
 
         while True:
             sleep(30)
@@ -48,4 +78,3 @@ if __name__ == '__main__':
     # connect_socket(socket_url, access_token=access_token, user_id=user_id)
     # get_req_contracts()
     main()
-

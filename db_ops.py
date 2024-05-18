@@ -9,7 +9,7 @@ from sqlalchemy import insert, select
 
 from common import logger, today
 from db_config import engine_str, use_sqlite, s_tbl_snap, n_tbl_snap, s_tbl_opt_greeks, s_tbl_opt_straddle, \
-    n_tbl_opt_straddle
+    n_tbl_opt_straddle, s_tbl_creds, n_tbl_creds, s_tbl_users, n_tbl_users
 
 execute_retry = True
 pool = sql.create_engine(engine_str, pool_size=10, max_overflow=5, pool_recycle=67, pool_timeout=30, echo=None)
@@ -147,13 +147,9 @@ class DBHandler:
     def check_user_exist(cls, email):
         # query = '''SELECT * FROM users;'''
         # response = execute_query(query)
-
         query = '''SELECT email, password FROM users WHERE email = :email'''
         response = execute_query(query, params={"email": email})
-
-
         data = response.fetchone()
-
         if data is None:
             return False, False
         else:
@@ -200,7 +196,7 @@ class DBHandler:
         if table:
             logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
             logger.info(f"\nLive is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
-            logger.info('\n df sent for trucation')
+            logger.info('\n df sent for truncation')
             table_df = calculate_table_data(df)
             return table_df
         else:
@@ -234,12 +230,10 @@ class DBHandler:
     @classmethod
     def get_credentials(cls):
         query = f"""
-                SELECT * FROM {s_tbl_creds} WHERE status = 'active'
+                SELECT * FROM {n_tbl_creds} WHERE status = 'active'
             """
         df = read_sql_df(query)
         return df
-
-
 
     @classmethod
     def insert_credentials(cls, db_data):
