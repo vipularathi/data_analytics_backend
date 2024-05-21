@@ -320,4 +320,4 @@ service = ServiceApp()
 app = service.app
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host='172.16.47.81', port=8601, workers=2)
+    uvicorn.run('app:app', host='0.0.0.0', port=8801, workers=2)

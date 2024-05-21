@@ -85,7 +85,7 @@ def execute_query(query, retry=2, wait_period=5, params=None):
             try:
                 result = conn.execute(query, params)
             except:
-                result = conn.execute(sql.text(query), params).mappings()
+                result = conn.execute(sql.text(query), params).mappings() #for login
             # conn.execute(ins, dict_data, multi=multi)
             conn.close()
     except sql_exec.OperationalError as e:
@@ -148,10 +148,8 @@ class DBHandler:
         # query = '''SELECT * FROM users;'''
         # response = execute_query(query)
 
-        query = '''SELECT email, password FROM users WHERE email = :email'''
+        query = '''SELECT email, password FROM chart_users WHERE email = :email'''
         response = execute_query(query, params={"email": email})
-
-
         data = response.fetchone()
 
         if data is None:

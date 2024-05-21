@@ -16,10 +16,10 @@ rdbms_type = 'postgres'
 # pg_user = 'postgres'
 # pg_pass = 'E6ymrG80or51s7y'
 # pg_host = 'localhost'
-db_name = f'data_arathi'
+db_name = f'data_analytics'
 pg_user = 'postgres'
-pg_pass = 'root'
-pg_host = 'localhost'
+pg_pass = 'Vivek001'
+pg_host = '172.16.47.54'
 engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:5432/{db_name}"
 temp_engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:5432"
 
@@ -101,6 +101,15 @@ s_tbl_opt_straddle = Table(
     Column('otm_iv', Float),
     Column('minima', BOOLEAN),
     UniqueConstraint('timestamp', 'underlying', 'expiry', 'strike', name=f'uq_{n_tbl_opt_straddle}_record')
+)
+
+n_tbl_chart_users = 'chart_users'
+s_tbl_chart_users = Table(
+    n_tbl_chart_users, metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('email', VARCHAR(50), nullable=False),
+    Column('password', VARCHAR(50), nullable=False),
+    UniqueConstraint('email', 'password', name=f'uq_{n_tbl_chart_users}_record')
 )
 
 # Last and after all table declarations
