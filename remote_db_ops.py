@@ -42,7 +42,7 @@ def get_master():
             FROM fnomaster
             WHERE symbol in ('NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY')
             and (
-                to_date(expiry, 'ddmonyyyy') > current_date
+                to_date(expiry, 'ddmonyyyy') >= current_date
                 and extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) 
                 and extract(year from to_date(expiry, 'ddmonyyyy')) = extract(year from current_date)
                 or extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) + 1

@@ -27,7 +27,7 @@ def update_expiry():
         master_dict_list = [master_df.iloc[i].to_dict()]
         master_dict = master_df.iloc[i]
     #     print(master_dict); print(master_dict.symbol, master_dict.expiry.month); print(master_dict_list,'\n')
-        if master_dict.symbol=='NIFTY':
+        if str(master_dict.symbol).upper()=='NIFTY':
             if master_dict.expiry.month==current_month:
                 n_cur_exp.append(master_dict.expiry)
             elif master_dict.expiry.month==current_month+1:
@@ -60,23 +60,30 @@ def update_expiry():
     # bn_exp1 = []
     # fn_exp1 = []
     # mcn_exp1 = []
+
+    #----------------------------------------------------------------
     if len(n_cur_exp) == 2:
         nifty_exp1 = n_cur_exp + [n_nxt_exp[-1]] + [n_nxt_nxt_exp[-1]]
+    elif len(n_cur_exp) == 1:
+        nifty_exp1 = n_cur_exp +[n_nxt_exp[0]] + [n_nxt_exp[-1]] + [n_nxt_nxt_exp[-1]]
     else:
         nifty_exp1 = n_cur_exp[:2] + [n_cur_exp[-1]] + [n_nxt_exp[-1]]
+    #----------------------------------------------------------------
     if len(bn_cur_exp) == 1:
         bn_exp1 = bn_cur_exp + [bn_nxt_exp[0]]
     else:
         bn_exp1 = bn_cur_exp[:2]
+    #----------------------------------------------------------------
     if len(fn_cur_exp) == 1:
         fn_exp1 = fn_cur_exp + [fn_nxt_exp[0]]
     else:
         fn_exp1 = fn_cur_exp[:2]
+    #----------------------------------------------------------------
     if len(mcn_cur_exp) == 1:
         mcn_exp1 = mcn_cur_exp + [mcn_nxt_exp[0]]
     else:
         mcn_exp1 = mcn_cur_exp[:2]
-
+    #----------------------------------------------------------------
     logger.info(f'\n NIFTY exp are {sorted(nifty_exp1)}\n BANKNIFTY exp are {bn_exp1}\n FINNIFTY exp are {fn_exp1}\n MIDCPNIFTY exp are {mcn_exp1}')
     final_exp = nifty_exp1 + bn_exp1 + fn_exp1 + mcn_exp1
     # print(f'\nfinal exp is {final_exp}')
