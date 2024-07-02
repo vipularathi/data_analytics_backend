@@ -66,21 +66,29 @@ def update_expiry():
         nifty_exp1 = n_cur_exp + [n_nxt_exp[-1]] + [n_nxt_nxt_exp[-1]]
     elif len(n_cur_exp) == 1:
         nifty_exp1 = n_cur_exp +[n_nxt_exp[0]] + [n_nxt_exp[-1]] + [n_nxt_nxt_exp[-1]]
+    elif len(n_cur_exp) == 0:
+        nifty_exp1 = n_nxt_exp[:2] + [n_nxt_exp[-1]] + [n_nxt_nxt_exp[-1]]
     else:
         nifty_exp1 = n_cur_exp[:2] + [n_cur_exp[-1]] + [n_nxt_exp[-1]]
     #----------------------------------------------------------------
     if len(bn_cur_exp) == 1:
         bn_exp1 = bn_cur_exp + [bn_nxt_exp[0]]
+    elif len(bn_cur_exp) == 0:
+        bn_exp1 = bn_nxt_exp[:2]
     else:
         bn_exp1 = bn_cur_exp[:2]
     #----------------------------------------------------------------
     if len(fn_cur_exp) == 1:
         fn_exp1 = fn_cur_exp + [fn_nxt_exp[0]]
+    elif len(fn_cur_exp) == 0:
+        fn_exp1 = fn_nxt_exp[:2]
     else:
         fn_exp1 = fn_cur_exp[:2]
     #----------------------------------------------------------------
     if len(mcn_cur_exp) == 1:
         mcn_exp1 = mcn_cur_exp + [mcn_nxt_exp[0]]
+    elif len(mcn_cur_exp) == 0:
+        mcn_exp1 = mcn_nxt_exp[:2]
     else:
         mcn_exp1 = mcn_cur_exp[:2]
     #----------------------------------------------------------------
