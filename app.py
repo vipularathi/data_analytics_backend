@@ -107,7 +107,7 @@ class ServiceApp:
         return self.symbol_expiry_map
 
     def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
-                              interval: int = Query(5), cont: bool = Query(False)):
+                              interval: int = Query(1), cont: bool = Query(False)):
         logger.info(f'inside fetch_straddle_minima and cont is {cont}')
         if cont:
             df = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
@@ -248,7 +248,7 @@ class ServiceApp:
         # allowed = pd.date_range(df['ts'].min(), df['ts'].max(), freq=interval)
         # req = df[df['ts'].isin(allowed)].copy()
         break_ts = time(12, 30, 0)
-        req1 = self._straddle_response(df, raw=True, count=st_cnt, interval=15)
+        req1 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
         req1 = req1[req1['ts'].dt.time <= break_ts].copy()
         req2 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
         req2 = req2[req2['ts'].dt.time > break_ts].copy()  # prev day covered here
