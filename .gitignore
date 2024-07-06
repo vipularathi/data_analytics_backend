@@ -1,0 +1,9 @@
+.idea
+.vscode
+entity_data
+logs
+test*.py
+venv
+*.zip
+*.ipynb
+extra
