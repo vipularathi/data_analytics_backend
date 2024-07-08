@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, time
 from logging.handlers import TimedRotatingFileHandler
 
 import pandas as pd
@@ -60,3 +60,87 @@ def define_logger():
 
 
 logger = define_logger()
+
+# a = datetime.now().time().replace(microsecond=0, second=0)
+# b = pd.to_datetime('16:53:00').time()
+# print(a, b)
+# print(a==b)
+#
+# a = datetime.now().time()
+# b = time(9,15)
+# print(a, b)
+# print(a>b, a==b, a<b)
+
+a = [
+                        {
+                            "BANKNIFTY_CW": [
+                                {
+                                    "Live": 0,
+                                    "Live-Min": 0,
+                                    "Max-Live": 0,
+                                    "Max": 0,
+                                    "Min": 0
+                                }
+                            ]
+                        },
+                        {
+                            "BANKNIFTY_NW": [
+                                {
+                                    "Live": 0,
+                                    "Live-Min": 0,
+                                    "Max-Live": 0,
+                                    "Max": 0,
+                                    "Min": 0
+                                }
+                            ]
+                        },
+                        {
+                            "FINNIFTY": [
+                                {
+                                    "Live": 0,
+                                    "Live-Min": 0,
+                                    "Max-Live": 0,
+                                    "Max": 0,
+                                    "Min": 0
+                                }
+                            ]
+                        },
+                        {
+                            "MIDCPNIFTY": [
+                                {
+                                    "Live": 0,
+                                    "Live-Min": 0,
+                                    "Max-Live": 0,
+                                    "Max": 0,
+                                    "Min": 0
+                                }
+                            ]
+                        },
+                        {
+                            "NIFTY_CW": [
+                                {
+                                    "Live": 0,
+                                    "Live-Min": 0,
+                                    "Max-Live": 0,
+                                    "Max": 0,
+                                    "Min": 0
+                                }
+                            ]
+                        },
+                        {
+                            "NIFTY_NW": [
+                                {
+                                    "Live": 0,
+                                    "Live-Min": 0,
+                                    "Max-Live": 0,
+                                    "Max": 0,
+                                    "Min": 0
+                                }
+                            ]
+                        }
+                    ]
+
+print('a=',a)
+
+b = [{k1: [{k2: 0 for k2, v2 in v1.items()}] for k1, v1 in d.items()} for d in a]
+print('b=',b)
