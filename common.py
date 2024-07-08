@@ -18,23 +18,13 @@ instruments_path = os.path.join(data_dir, 'instruments.csv')  # Unique for each 
 
 holidays_23 = ['2023-01-26', '2023-03-07', '2023-03-30', '2023-04-04', '2023-04-07', '2023-04-14', '2023-05-01', '2023-06-29', '2023-08-15', '2023-09-19', '2023-10-02', '2023-10-24', '2023-11-14', '2023-11-27', '2023-12-25']
 holidays_24 = ['2024-01-22', '2024-01-26', '2024-03-08', '2024-03-25', '2024-03-29', '2024-04-11', '2024-04-17', '2024-05-01','2024-05-20', '2024-06-17', '2024-07-17', '2024-08-15', '2024-10-02', '2024-11-01', '2024-11-15', '2024-12-25']
-holidays = holidays_23 + holidays_24  # List of date objects
+holidays_24.append('2024-03-20') #add unusual holidays
+holidays = holidays_23 + holidays_24
 b_days = pd.bdate_range(start=datetime.now()-relativedelta(months=3), end=datetime.now(), freq='C', weekmask='1111100',
                         holidays=holidays)
 b_days = b_days.append(pd.DatetimeIndex([pd.Timestamp(year=2024, month=1, day=20), pd.Timestamp(year=2024, month=3, day=2),
-                                         pd.Timestamp(year=2024, month=5, day=4), pd.Timestamp(year=2024, month=5, day=18),
-    pd.Timestamp(year=2024, month=6, day=1), pd.Timestamp(year=2024, month=7, day=6), pd.Timestamp(year=2024, month=8, day=3),
-                                         pd.Timestamp(year=2024, month=9, day=14),
-                                         pd.Timestamp(year=2024, month=10, day=5),
-    pd.Timestamp(year=2024, month=11, day=9), pd.Timestamp(year=2024, month=12, day=7)]))
-# May 4, 2024
-# June 1, 2024
-# July 6, 2024
-# August 3, 2024
-# September 14, 2024
-# October 5, 2024
-# November 9, 2024
-# December 7, 2024
+                                          pd.Timestamp(year=2024, month=5, day=18)])) #removed contigency trading drill dates from unusual business days
+
 b_days = b_days[b_days <= datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)].drop_duplicates().sort_values()
 today, yesterday = b_days[-1], b_days[-2]
 IST = pytz.timezone('Asia/Kolkata')

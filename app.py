@@ -263,10 +263,20 @@ class ServiceApp:
         # allowed = pd.date_range(df['ts'].min(), df['ts'].max(), freq=interval)
         # req = df[df['ts'].isin(allowed)].copy()
         break_ts = time(12, 30, 0)
+        # req1 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
+        # req1 = req1[req1['ts'].dt.time <= break_ts].copy()
+        # req2 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
+        # req2 = req2[req2['ts'].dt.time > break_ts].copy()  # prev day covered here
+        # d = [req1, req2]
+        # d = [_d for _d in d if len(d)]
+        # if d:
+        #     req = pd.concat(d, ignore_index=True, sort=False)
+        #     req.sort_values(['ts', 'strike'], inplace=True)
         req = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
         if req is not None:
             req.sort_values(['ts', 'strike'], inplace=True)
         else:
+            # req = pd.DataFrame(columns=req1.columns)
             req = pd.DataFrame(columns=req.columns)
         req = req.replace({np.NAN: None}).round(2)
         strike_iv = req.groupby(['strike'], as_index=False).agg({'combined_iv': list, 'ts': list})

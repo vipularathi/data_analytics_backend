@@ -14,6 +14,7 @@ from db_config import engine_str, use_sqlite, s_tbl_snap, n_tbl_snap, s_tbl_opt_
 execute_retry = True
 pool = sql.create_engine(engine_str, pool_size=10, max_overflow=5, pool_recycle=67, pool_timeout=30, echo=None)
 
+threshold_limit = 10000
 
 def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, ignore=False, truncate=False, retry=1, wait_period=5):
     """
@@ -191,9 +192,9 @@ class DBHandler:
         query = f"""
             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv
             FROM {n_tbl_opt_straddle}
-            WHERE underlying=%(symbol)s and expiry=%(expiry)s and minima=true and "timestamp">='{start_from}';
+            WHERE underlying=%(symbol)s and expiry=%(expiry)s and minima=true and timestamp>='{start_from}' and call_oi > {threshold_limit} and put_oi > {threshold_limit};
         """
-        df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry})
+        df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry, 'threshold_limit': threshold_limit})
 
         if table:
             logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
@@ -204,6 +205,7 @@ class DBHandler:
         else:
             return df
         # return df
+
     
     @classmethod
     def get_straddle_minima_table(cls, symbol, expiry, start_from=today):
@@ -219,14 +221,24 @@ class DBHandler:
         table_dict = calculate_table_data(df)
         return table_dict
 
+    # @classmethod
+    # def get_straddle_iv_data(cls, symbol, expiry, start_from=today):
+    #     query = f"""
+    #             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima
+    #             FROM {n_tbl_opt_straddle}
+    #             WHERE underlying=%(symbol)s and expiry=%(expiry)s and "timestamp">='{start_from}';
+    #         """
+    #     df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry})
+    #     return df
+
     @classmethod
     def get_straddle_iv_data(cls, symbol, expiry, start_from=today):
         query = f"""
-                SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima
-                FROM {n_tbl_opt_straddle}
-                WHERE underlying=%(symbol)s and expiry=%(expiry)s and "timestamp">='{start_from}';
-            """
-        df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry})
+                    SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima
+                    FROM {n_tbl_opt_straddle}
+                    WHERE underlying=%(symbol)s and expiry=%(expiry)s and timestamp>='{start_from}' and call_oi > {threshold_limit} and put_oi > {threshold_limit};
+                """
+        df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry, 'threshold_limit': threshold_limit})
         return df
 
     @classmethod
