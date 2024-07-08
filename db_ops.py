@@ -9,7 +9,7 @@ from sqlalchemy import insert, select
 
 from common import logger, today
 from db_config import engine_str, use_sqlite, s_tbl_snap, n_tbl_snap, s_tbl_opt_greeks, n_tbl_opt_greeks, s_tbl_opt_straddle, \
-    n_tbl_opt_straddle
+    n_tbl_opt_straddle, n_tbl_master, s_tbl_master
 
 execute_retry = True
 pool = sql.create_engine(engine_str, pool_size=10, max_overflow=5, pool_recycle=67, pool_timeout=30, echo=None)
@@ -65,11 +65,19 @@ def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, i
     logger.info(f"Data Inserted in {table.name} in: {time() - st} secs")
 
 
-def insert_data_df(table, data: pd.DataFrame, truncate=False):
+def insert_data_df(table, data: pd.DataFrame, truncate=False, master = False):
     conn = pool.connect()
     if truncate:
         conn.execute(f'TRUNCATE TABLE {table.name}')
-    response = data.to_sql(table.name, con=conn, if_exists='append', index=False, method='multi')
+    if master:
+        st = time()
+        logger.info(f'Data insertion started for master')
+        response = data.to_sql(table, con=conn, if_exists='replace', index=False)
+        # df.to_sql(tablename, conn, if_exists='replace', index=False)
+        logger.info(f'Data insertion completed for master in: {time() - st} secs')
+        return response
+    else:
+        response = data.to_sql(table.name, con=conn, if_exists='append', index=False, method='multi')
     conn.close()
     return response
 

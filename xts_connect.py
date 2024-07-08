@@ -17,14 +17,14 @@ data_api_secret = 'Evas244$3H'
 interactive_api_key = 'dabfe67ee2286b19a7b664'
 interactive_api_secret = 'Mbqk087#Y1'
 
-
 def login():
     url = f"{host}/apimarketdata/auth/login"
     payload = {"appKey": data_api_key, "secretKey": data_api_secret, "source": "WebAPI"}
     response = requests.post(url=url, json=payload)
     logger.info(response.content)
     data = response.json()
-    return data
+    access_token = data['result']['token']
+    return access_token
 
 
 def subscribe_index():
@@ -87,7 +87,8 @@ def main():
             logger.error(f"Error in connection: {exc}")
 
 
-if __name__ == '__main__':
-    info = login()
-    access_token = info['result']['token']
-    main()
+# if __name__ == '__main__':
+#     info = login()
+#     access_token = info['result']['token']
+#     main()
+
