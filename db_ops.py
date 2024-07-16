@@ -825,7 +825,7 @@ class DBHandler:
         query = f"""
                     SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima
                     FROM {n_tbl_opt_straddle}
-                    WHERE underlying='{symbol}' and date(expiry)='{expiry}' and "timestamp"::timestamp>='{start_from}' and call_oi > {threshold_limit} and put_oi > {threshold_limit};
+                    WHERE underlying='{symbol}' and date(expiry)='{expiry}' and "timestamp"::timestamp>='{start_from}' and call_oi > {threshold_limit} and put_oi > {threshold_limit} and combined_premium is not null;
                 """
         df = read_sql_df(query)
         # # # logger.info(f'strd iv df for {symbol} {expiry} is\n  {df}')
