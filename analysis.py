@@ -256,6 +256,7 @@ class SnapAnalysis:
         cols_renames = {'symbol_c': 'call', 'symbol_p': 'put', 'spot_c': 'spot', 'ltp_c': 'call_price',
                         'ltp_p': 'put_price', 'oi_c': 'call_oi', 'oi_p': 'put_oi', 'iv_c': 'call_iv', 'iv_p': 'put_iv'}
         req_straddle_df.rename(columns=cols_renames, inplace=True)
+        # req_straddle_df = req_straddle_df[(req_straddle_df['call_oi'] > 10000) & (req_straddle_df['put_oi'] > 10000)]
         if self.insert:
             # insert req_straddle_df
             DBHandler.insert_opt_straddle(req_straddle_df.replace({np.NAN: None}).to_dict('records'))

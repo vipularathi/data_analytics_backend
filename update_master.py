@@ -97,24 +97,9 @@ def download_master(exch_seg):
     #     logger.info(f'Master table downloaded and updated at {master_path}')
     return df_fo
 
-# def initiate_process():
-#     exchangesegments = ["NSEFO"]
-#     if os.path.exists(master_path):
-#         if last_update_date < datetime.now().date():
-#             for each in exchangesegments:
-#                 result = download_master(exchangesegments)
-#                 if result:
-#                     # logger.info(f'Master File downloaded at {master_path}')
-#                     print((f'Master File downloaded at {master_path}'))
-#                     return result
-#         else:
-#             print('Master file is up to date.')
-#     else:
-#         result = download_master(exchangesegments)
-#         if result:
-#             print(f'Master file downloaded at {master_path}')
-#         return result
+def update_master():
+    master_df = download_master(['NSEFO'])
+    insert_data_df(table=n_tbl_master, data=master_df, master=True)
+    return True
 
-master_df = download_master(['NSEFO'])
-
-insert_data_df(table=n_tbl_master, data=master_df, master=True)
+# update_master_result = update_master()
