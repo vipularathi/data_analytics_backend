@@ -959,71 +959,196 @@ class ServiceApp:
             self.copy_symbol_expiry_map = self.symbol_expiry_map.copy()
         return self.symbol_expiry_map
 
+    # def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
+    #                           interval: int = Query(1), cont: bool = Query(False)):
+    #     # logger.info(f'{symbol} {expiry} and cont is {cont}')
+    #     if cont:
+    #         df_yest = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
+    #         df_yest['prev'] = df_yest['ts'] < today
+    #         df_yest = df_yest[df_yest['prev'] == True]
+    #         # # logger.info(f'fetch straddle with 1 {symbol} {expiry}')
+    #         df_today = DBHandler.get_straddle_minima(symbol, expiry, start_from=today)
+    #         df_today['prev'] = df_today['ts'] < today
+    #         # df_orig = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
+    #         # df_yest = df_orig[df_orig['ts'] < today].copy()
+    #         # df_yest['prev'] = True
+    #         # df_today = df_orig[df_orig['ts'] >= today].copy()
+    #         # df_today['prev'] = False
+    #
+    #         # df_orig = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
+    #         # df_orig['prev'] = df_orig['ts'] < today
+    #         # df_yest = df_orig[df_orig['prev'] == True].copy()
+    #         # df_today = df_orig[df_orig['prev'] == False].copy()
+    #     else:
+    #         # df = DBHandler.get_straddle_minima(symbol, expiry)
+    #         # df['prev'] = False
+    #         # # logger.info(f'fetch straddle with 2 {symbol} {expiry}')
+    #         df_today = DBHandler.get_straddle_minima(symbol, expiry)
+    #         df_today['prev'] = False
+    #     if self.use_otm_iv:
+    #         if cont:
+    #             df_yest['combined_iv'] = df_yest['otm_iv']
+    #             df_today['combined_iv'] = df_today['otm_iv']
+    #         else:
+    #             df_today['combined_iv'] = df_today['otm_iv']
+    #     # # logger.info(f'\ndf of {symbol} {expiry} fetched from db is \n {df}')
+    #
+    #     # if symbol == 'NIFTY' and expiry == '2024-07-18':
+    #     #     df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw.csv", index = False)
+    #     #     fixed_df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw.csv",
+    #     #                      index=False)
+    #
+    #     fixed_resp = fixed_response_dict()
+    #     fixed_df = pd.DataFrame(fixed_resp)
+    #     # # logger.info(f'\nfixed df is \n{fixed_df.head()}')
+    #     df_yest['ts'] = pd.to_datetime(df_yest['ts'])
+    #     df_today['ts'] = pd.to_datetime(df_today['ts'])
+    #     fixed_df['ts'] = pd.to_datetime(fixed_df['ts'])
+    #     # logger.info(f'changed ts in all 3 df')
+    #
+    #     # # mtd-1
+    #     # merged_df = pd.merge(fixed_df, df[['ts', 'strike', 'combined_premium']], on='ts', how='left')
+    #     # # logger.info(f'orig merged df is \n{merged_df}')
+    #     # merged_df['strike'] = merged_df['strike'].fillna(0).astype(int)
+    #     # # logger.info(f'merged df after strike is \n {merged_df}')
+    #     # merged_df['combined_premium'] = merged_df['combined_premium'].fillna(0).astype(int)
+    #     # # logger.info(f'merged df after combined_premium is \n {merged_df}')
+    #
+    #     # mtd-2
+    #     fixed_df.set_index('ts')
+    #     # logger.info(f'fixed df {symbol} {expiry} is {fixed_df}')
+    #     df_today.set_index('ts')
+    #     # logger.info(f'df today {symbol} {expiry} is {df_today}')
+    #     df_yest.set_index('ts')
+    #     # logger.info(f'df yest {symbol} {expiry} is {df_yest}')
+    #     fixed_df.update(df_today[['spot','strike', 'combined_premium','combined_iv', 'otm_iv', 'prev']])
+    #     merged_df = fixed_df.copy()
+    #     # logger.info(f'updated merged df {symbol} {expiry} is \n{merged_df}')
+    #     final_df = pd.concat([df_yest, merged_df], axis=0)
+    #     # final_df[[]].fillna(0, inplace=True)
+    #     # final_df = final_df.apply(lambda col: col.fillna(0) if col.name != 'prev' else col)
+    #     # df_yest.update(merged_df[['spot','strike', 'combined_premium','combined_iv', 'otm_iv']])
+    #     # final_df = df_yest.copy()
+    #     # logger.info(f'final df {symbol} {expiry} after updation is \n{final_df}')
+    #
+    #     # # logger.info(f'merged df {symbol} {expiry} after updation is \n{final_df}')
+    #     final_df.reset_index()
+    #
+    #     # logger.info(f'\nmerged_df {symbol} {expiry} is \n {final_df}')
+    #     return self._straddle_response(final_df, count=st_cnt, interval=interval)
+
     def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
                               interval: int = Query(1), cont: bool = Query(False)):
         # logger.info(f'{symbol} {expiry} and cont is {cont}')
         if cont:
-            df_yest = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
-            df_yest['prev'] = df_yest['ts'] < today
-            df_yest = df_yest[df_yest['prev'] == True]
+            df_orig = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
+            logger.info(f'\n{symbol} {expiry} {cont} {today} {yesterday} df orig is \n {df_orig}')
+            # if symbol == 'NIFTY' and expiry == pd.to_datetime("2024-07-18").date():
+            #     df_yest.to_csv('test_data_nifty_july182024.csv', index=False)
+            #     logger.info('csv file made successfully')
+            # df_yest = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_data_nifty_july182024.csv",
+            #                        index_col=False)
+            # df_yest['ts'] = pd.to_datetime(df_yest['ts'])
+            df_orig['prev'] = df_orig['ts'] < today
+            logger.info(f'\n{symbol} {expiry} df orig prev is \n {df_orig}')
+            # logger.info(f'type of ts is {type(df_yest["ts"])} and type of today is {type(today)}')
+            # df_yest['prev'] = df_yest['ts'] < today
+            # df_yest = df_yest[df_yest['prev'] == True]
+            # df1 = df_orig.copy()
+            df_yest = df_orig[df_orig['prev']==True].copy()
+            logger.info(f'\n {symbol} {expiry} df_yest is \n {df_yest}')
             # # logger.info(f'fetch straddle with 1 {symbol} {expiry}')
-            df_today = DBHandler.get_straddle_minima(symbol, expiry, start_from=today)
-            df_today['prev'] = df_today['ts'] < today
+            # df_today = DBHandler.get_straddle_minima(symbol, expiry, start_from=today)
+            # df_today['prev'] = df_today['ts'] < today
+            # df2 = df_orig.copy()
+            df_today = df_orig[df_orig['prev']==False].copy()
+            logger.info(f'\n {symbol} {expiry} df_today is \n {df_today}')
             # df_orig = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
             # df_yest = df_orig[df_orig['ts'] < today].copy()
             # df_yest['prev'] = True
             # df_today = df_orig[df_orig['ts'] >= today].copy()
             # df_today['prev'] = False
         else:
-            df = DBHandler.get_straddle_minima(symbol, expiry)
-            df['prev'] = False
+            df_yest = pd.DataFrame()
+            df_today = DBHandler.get_straddle_minima(symbol, expiry)
+            df_today['prev'] = False
             # # logger.info(f'fetch straddle with 2 {symbol} {expiry}')
-        if self.use_otm_iv:
-            df_yest['combined_iv'] = df_yest['otm_iv']
-            df_today['combined_iv'] = df_today['otm_iv']
+        # if self.use_otm_iv:
+        #     df_yest['combined_iv'] = df_yest['otm_iv']
+        #     df_today['combined_iv'] = df_today['otm_iv']
+
         # # logger.info(f'\ndf of {symbol} {expiry} fetched from db is \n {df}')
 
         # if symbol == 'NIFTY' and expiry == '2024-07-18':
-        #     df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw.csv", index = False)
-        #     fixed_df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw.csv",
+        #     df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw_1672024.csv", index = False)
+        #     fixed_df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw_1672024.csv",
         #                      index=False)
 
         fixed_resp = fixed_response_dict()
         fixed_df = pd.DataFrame(fixed_resp)
         # # logger.info(f'\nfixed df is \n{fixed_df.head()}')
-        df_yest['ts'] = pd.to_datetime(df_yest['ts'])
+        # df_yest['ts'] = pd.to_datetime(df_yest['ts'])
         df_today['ts'] = pd.to_datetime(df_today['ts'])
         fixed_df['ts'] = pd.to_datetime(fixed_df['ts'])
         # logger.info(f'changed ts in all 3 df')
 
         # # mtd-1
-        # merged_df = pd.merge(fixed_df, df[['ts', 'strike', 'combined_premium']], on='ts', how='left')
-        # # logger.info(f'orig merged df is \n{merged_df}')
+        merged_df = pd.merge(fixed_df, df_today, on='ts', how='left', suffixes = ('', '_y'))
+        logger.info(f'\n{symbol} {expiry} orig merged df is \n{merged_df}')
         # merged_df['strike'] = merged_df['strike'].fillna(0).astype(int)
         # # logger.info(f'merged df after strike is \n {merged_df}')
         # merged_df['combined_premium'] = merged_df['combined_premium'].fillna(0).astype(int)
         # # logger.info(f'merged df after combined_premium is \n {merged_df}')
+        # Merge today's data with the fixed response dict
+        # merged_today_df = pd.merge(fixed_df, df_today, on='ts', how='left', suffixes=('_x', '_y'))
+        # Fill missing values
+        col_list = ['spot', 'strike', 'combined_premium', 'combined_iv', 'otm_iv', 'prev']
+        for col in col_list:
+            merged_df[col] = merged_df[col].fillna(merged_df[f'{col}_y']).fillna(0)
+        logger.info(f'\n{symbol} {expiry} merged df 1 is \n{merged_df}')
+        merged_df.drop(columns=col_list, axis=1, inplace=True)
+        logger.info(f'\n{symbol} {expiry} merged df 2 is \n{merged_df}')
+        rename_dict = {f'{col}_y': col for col in col_list}
+        merged_df.rename(columns=rename_dict, inplace=True)
+        merged_df.fillna(0, inplace=True)
+        merged_df['prev'] = False
+        # merged_df = merged_df.apply(lambda col: col.fillna(0, inplace=True) if col.name != 'prev' else col)
+
+
+        # merged_df = merged_df[['ts', 'spot', 'strike', 'combined_premium', 'combined_iv', 'otm_iv', 'prev']]
+        if symbol == 'BANKNIFTY' and expiry == pd.to_datetime("2024-07-24").date():
+            merged_df.to_csv(f'merged_df_try_bn_cw.csv', index = False)
+        logger.info(f'\n{symbol} {expiry} updated merged df is \n{merged_df}')
 
         # mtd-2
-        fixed_df.set_index('ts')
-        # logger.info(f'fixed df {symbol} {expiry} is {fixed_df}')
-        df_today.set_index('ts')
-        # logger.info(f'df today {symbol} {expiry} is {df_today}')
-        df_yest.set_index('ts')
-        # logger.info(f'df yest {symbol} {expiry} is {df_yest}')
-        fixed_df.update(df_today[['spot','strike', 'combined_premium','combined_iv', 'otm_iv', 'prev']])
-        merged_df = fixed_df.copy()
-        # logger.info(f'updated merged df {symbol} {expiry} is \n{merged_df}')
+        # fixed_df.set_index('ts')
+        # # logger.info(f'fixed df {symbol} {expiry} is {fixed_df}')
+        # df_today.set_index('ts')
+        # # logger.info(f'df today {symbol} {expiry} is {df_today}')
+        # df_yest.set_index('ts')
+        # # logger.info(f'df yest {symbol} {expiry} is {df_yest}')
+        # fixed_df.update(df_today[['spot','strike', 'combined_premium','combined_iv', 'otm_iv', 'prev']])
+        # merged_df = fixed_df.copy()
+        # logger.info(f'\n{symbol} {expiry} merged df is \n{merged_df}')
         final_df = pd.concat([df_yest, merged_df], axis=0)
-        # final_df[[]].fillna(0, inplace=True)
-        # final_df = final_df.apply(lambda col: col.fillna(0) if col.name != 'prev' else col)
-        # df_yest.update(merged_df[['spot','strike', 'combined_premium','combined_iv', 'otm_iv']])
-        # final_df = df_yest.copy()
-        # logger.info(f'final df {symbol} {expiry} after updation is \n{final_df}')
+        # # final_df[[]].fillna(0, inplace=True)
+        # # final_df = final_df.apply(lambda col: col.fillna(0) if col.name != 'prev' else col)
+        # # df_yest.update(merged_df[['spot','strike', 'combined_premium','combined_iv', 'otm_iv']])
+        # # final_df = df_yest.copy()
+        logger.info(f'\n{symbol} {expiry} final df is \n{final_df}')
 
         # # logger.info(f'merged df {symbol} {expiry} after updation is \n{final_df}')
-        final_df.reset_index()
+        final_df.reset_index(drop=True, inplace=True)
+        # logger.info(f'\nfinal df {symbol} {expiry} is \n{final_df.head()}')
+        # logger.info(f'\ntype of expiry is {type(expiry)} and type of arg is {type(pd.to_datetime("2024-07-18").date())} test is {expiry==(pd.to_datetime("2024-07-18").date())}')
+        # if symbol == 'NIFTY' and expiry == pd.to_datetime("2024-07-18").date():
+        #     final_df.to_csv('test_data_nifty_july182024_new.csv', index=False)
+        #     logger.info('csv file made successfully')
 
+        # final_df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_data_nifty_july182024_new.csv", index_col = False)
+        # final_df['ts'] = pd.to_datetime(final_df['ts'])
+        if self.use_otm_iv:
+            final_df['combined_iv'] = final_df['otm_iv']
         # logger.info(f'\nmerged_df {symbol} {expiry} is \n {final_df}')
         return self._straddle_response(final_df, count=st_cnt, interval=interval)
 
@@ -1399,4 +1524,4 @@ service = ServiceApp()
 app = service.app
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host='0.0.0.0', port=8901, workers=2)
+    uvicorn.run('app:app', host='0.0.0.0', port=8851, workers=2)

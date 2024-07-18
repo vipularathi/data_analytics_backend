@@ -7,3 +7,5 @@ venv
 *.zip
 *.ipynb
 extra
+*.csv
+data
