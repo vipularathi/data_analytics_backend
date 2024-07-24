@@ -6,7 +6,7 @@ import sqlalchemy as sql
 import sqlalchemy.exc as sql_exec
 import pandas as pd
 from sqlalchemy import insert, select
-
+from db_config import engine_str
 from common import logger, today
 # from remote_db_config import engine_str
 
@@ -15,12 +15,12 @@ execute_retry = True
 # pg_user = 'postgres'
 # pg_pass = 'Vivek001'
 # pg_host = '172.16.47.54'
-db_name = 'data_arathi_9_apr_2024'
-pg_user = 'postgres'
-pg_pass = 'root'
-pg_host = '172.16.47.81' # or pg_host = 'localhost'
-pg_port = '5432'
-engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:5432/{db_name}" #use
+# db_name = 'data_analytics'
+# pg_user = 'postgres'
+# pg_pass = 'Vivek001'
+# pg_host = '172.16.47.54' # or pg_host = 'localhost'
+# pg_port = '5432'
+# engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:5432/{db_name}" #use
 
 pool = sql.create_engine(engine_str, pool_size=10, max_overflow=5, pool_recycle=67, pool_timeout=30, echo=None)
 conn = pool.connect()

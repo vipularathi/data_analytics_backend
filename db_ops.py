@@ -797,11 +797,11 @@ class DBHandler:
         # return df
 
     @classmethod
-    def get_straddle_minima_table(cls, symbol, expiry, start_from=today):
+    def get_straddle_minima_table(cls, symbol, expiry, start_from=today.replace(hour=9, minute=15)):
         query = f"""
             SELECT timestamp as ts, combined_premium
             FROM {n_tbl_opt_straddle}
-            WHERE underlying='{symbol}' and date(expiry)='{expiry}' and minima='true' and "timestamp">='{start_from}';
+            WHERE underlying='{symbol}' and date(expiry)='{expiry}' and minima='true' and "timestamp">'{start_from}';
         """
         df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry})
         # # # logger.info(f'\ndf made from read_sql_df is \n{df.head()}')

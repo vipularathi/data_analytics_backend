@@ -1454,11 +1454,36 @@ class ServiceApp:
         strike_iv['combined_iv'] = strike_iv['combined_iv'].apply(lambda x: x + [None] * (max_len - len(x)))
         strike_iv['ts'] = strike_iv['ts'].apply(lambda x: x + [None] * (max_len - len(x)))
 
-        iv = list(zip_longest(*strike_iv['combined_iv'].tolist(), fillvalue=None))
+        # iv = list(zip_longest(*strike_iv['combined_iv'].tolist(), fillvalue=None))
+        # ts = list(zip_longest(*strike_iv['ts'].tolist(), fillvalue=None))
+
+        # # Filter out None values from the aligned lists
+        # # iv = [list(filter(lambda x: x is not None, ivs)) for ivs in iv]
+        # ts = [list(filter(lambda x: x is not None, t)) for t in ts]
+
+        # -----
+        combined_iv_list = strike_iv['combined_iv'].tolist()
+        for i in range(len(combined_iv_list[0])):
+            for j in range(len(strikes)):
+                if combined_iv_list[j][i] is None:
+                    lesser_iv = None
+                    greater_iv = None
+                    # Finding the lesser strike IV
+                    for k in range(j - 1, -1, -1):
+                        if combined_iv_list[k][i] is not None:
+                            lesser_iv = combined_iv_list[k][i]
+                            break
+                    # Finding the greater strike IV
+                    for k in range(j + 1, len(strikes)):
+                        if combined_iv_list[k][i] is not None:
+                            greater_iv = combined_iv_list[k][i]
+                            break
+                    if lesser_iv is not None and greater_iv is not None:
+                        combined_iv_list[j][i] = (lesser_iv + greater_iv) / 2
+
+        iv = list(zip_longest(*combined_iv_list, fillvalue=None))
         ts = list(zip_longest(*strike_iv['ts'].tolist(), fillvalue=None))
 
-        # Filter out None values from the aligned lists
-        # iv = [list(filter(lambda x: x is not None, ivs)) for ivs in iv]
         ts = [list(filter(lambda x: x is not None, t)) for t in ts]
 
         return {'strikes': strikes, 'iv': iv, 'ts': ts}
@@ -1476,7 +1501,7 @@ class ServiceApp:
         uq_strikes.sort()
         strikes = uq_strikes[uq_strikes <= mean][-l_st:].tolist() + uq_strikes[uq_strikes > mean][:u_st].tolist()
         logger.info(f'\n uq_strikes are \n{uq_strikes}, \n strikes are \n{strikes}')
-        df: pd.DataFrame = df[df['strike'].isin(strikes)].copy()
+        df: pd.DataFrame = df[df['strike'].isin(uq_strikes)].copy()
         # # logger.info(f'df before drop is \n {df}')
         df.drop(columns=['spot', 'range'], errors='ignore', inplace=True)
         df.sort_values(['ts', 'strike'], inplace=True)
@@ -1524,4 +1549,4 @@ service = ServiceApp()
 app = service.app
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host='0.0.0.0', port=8851, workers=2)
+    uvicorn.run('app:app', host='0.0.0.0', port=8811, workers=5)

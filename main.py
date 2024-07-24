@@ -2,7 +2,7 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context, Manager, Pipe
 from time import sleep
-
+from datetime import datetime
 from analysis import start_analysis
 from common import logger
 from contracts import get_req_contracts
@@ -12,7 +12,7 @@ from zerodha import initiate_session, zws_wrapper
 
 
 def main():
-    workers = max(os.cpu_count(), 4)
+    workers = max(os.cpu_count(), 6)
     logger.info(f'Max workers: {workers}. Main Pid: {os.getpid()}')
     with ProcessPoolExecutor(max_workers=workers, mp_context=get_context('spawn')) as executor:
         client = initiate_session()
@@ -48,4 +48,6 @@ if __name__ == '__main__':
     # connect_socket(socket_url, access_token=access_token, user_id=user_id)
     # get_req_contracts()
     main()
+    now_ = datetime.now()
+
 
