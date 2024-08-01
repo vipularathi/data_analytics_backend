@@ -12,7 +12,7 @@ from zerodha import initiate_session, zws_wrapper
 
 
 def main():
-    workers = max(os.cpu_count(), 4)
+    workers = max(os.cpu_count(), 6)
     logger.info(f'Max workers: {workers}. Main Pid: {os.getpid()}')
     with ProcessPoolExecutor(max_workers=workers, mp_context=get_context('spawn')) as executor:
         client = initiate_session()

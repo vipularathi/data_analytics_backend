@@ -108,7 +108,7 @@ class ServiceApp:
 
     def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
                               interval: int = Query(1), cont: bool = Query(False)):
-        logger.info(f'inside fetch_straddle_minima and cont is {cont}')
+        logger.info(f'inside fetch_straddle_minima for {symbol} {expiry} and cont is {cont}')
         if cont:
             df = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
             df['prev'] = df['ts'] < today
@@ -119,20 +119,225 @@ class ServiceApp:
             logger.info(f'fetch straddle with 2 {symbol} {expiry}')
         if self.use_otm_iv:
             df['combined_iv'] = df['otm_iv']
-        logger.info(f'\nstraddle_minima df is \n {df}')
+        logger.info(f'\nstraddle_minima df for {symbol} {expiry} is \n {df}')
         return self._straddle_response(df, count=st_cnt, interval=interval)
 
+
+    # def fetch_straddle_minima_table(self, st_cnt: int = Query(default=None), interval: int = Query(1),
+    #                                 cont: bool = Query(False), table: bool = Query(True)):
+    #     if self.copy_symbol_expiry_map:
+    #         logger.info(f'\nsym exp map is {self.copy_symbol_expiry_map}')
+    #         for_table = []
+    #         for i in range(len(self.copy_symbol_expiry_map)):
+    #             #     print(f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
+    #             logger.info(
+    #                 f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
+    #             name = self.copy_symbol_expiry_map[i]['name'];
+    #             sorted_exp = sorted(self.copy_symbol_expiry_map[i]['expiry'])
+    #             if name == 'NIFTY':
+    #                 new_exp = sorted_exp[:2]
+    #                 dict_1 = {'NIFTY_CW': new_exp[0], 'NIFTY_NW': new_exp[1]}
+    #                 for_table.append(dict_1)
+    #             elif name == 'BANKNIFTY':
+    #                 new_exp = sorted_exp[:2]
+    #                 dict_1 = {'BANKNIFTY_CW': new_exp[0], 'BANKNIFTY_NW': new_exp[1]}
+    #                 for_table.append(dict_1)
+    #             elif name == 'FINNIFTY':
+    #                 dict_1 = {'FINNIFTY': sorted_exp[0]}
+    #                 for_table.append(dict_1)
+    #             else:
+    #                 new_exp = sorted_exp[0]
+    #                 dict_1 = {'MIDCPNIFTY': new_exp}
+    #                 for_table.append(dict_1)
+    #         # print('\n for table dict is ', for_table)
+    #         logger.info(f'\nfor_table dict is {for_table}')
+
+    #         final_json = []
+    #         for i in for_table:
+    #             for symbol, expiry in i.items():
+    #                 # print(f'\n key{count} is {key} and value{count} is {value}')
+    #                 logger.info((f'\n original key is {symbol} and value is {expiry}'))
+    #                 if symbol.startswith('NIFTY'):
+    #                     symbol1 = 'NIFTY'
+    #                 elif symbol.startswith('BANK'):
+    #                     symbol1 = 'BANKNIFTY'
+    #                 elif symbol.startswith('FIN'):
+    #                     symbol1 = 'FINNIFTY'
+    #                 else:
+    #                     symbol1 = 'MIDCPNIFTY'
+    #                 logger.info(f'\n changed key is {symbol1} and value is {expiry}')
+    #                 list_dict_resp = DBHandler.get_straddle_minima_table(symbol1, expiry)
+    #                 logger.info(f'\nlist_dict_resp is {list_dict_resp}')
+    #                 # if symbol.startswith('NIFTY_CW'):
+    #                 #     symbol2 = 'NF CW'
+    #                 # elif symbol.startswith('BANKNIFTY_CW'):
+    #                 #     symbol2 = 'BN CW'
+    #                 # elif symbol.startswith('FINNIFTY'):
+    #                 #     symbol2 = 'FN CW'
+    #                 # elif symbol.startswith('MIDCPNIFTY'):
+    #                 #     symbol2 = 'MN CW'
+    #                 # elif symbol.startswith('NIFTY_NW'):
+    #                 #     symbol2 = 'NF NW'
+    #                 # elif symbol.startswith('BANKNIFTY_NW'):
+    #                 #     symbol2 = 'BN NW'
+    #                 new_dict = {symbol: list_dict_resp}
+    #                 logger.info(f'\nnew_dict is {new_dict}')
+    #                 final_json.append(new_dict)
+    #                 logger.info(f'\nmaking final json resp- {final_json}')
+
+    #         logger.info(f'\nFINAL JSON RESP IS {final_json}')
+    #         # df_json = df.to_json()
+    #         # logger.info(f'\n df to json is {df_json}')
+    #         # df_json = df.to_dict('records')
+    #         # self.copy_symbol_expiry_map = None
+    #         return final_json
 
     def fetch_straddle_minima_table(self, st_cnt: int = Query(default=None), interval: int = Query(1),
                                     cont: bool = Query(False), table: bool = Query(True)):
         if self.copy_symbol_expiry_map:
-            logger.info(f'\nsym exp map is {self.copy_symbol_expiry_map}')
+            # logger.info(f'\nsym exp map is {self.copy_symbol_expiry_map}')
             for_table = []
+            current_time = datetime.now().time()
+            # if current_time > time(9,15):
+            #     for i in range(len(self.copy_symbol_expiry_map)):
+            #         #     print(f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
+            #         # logger.info(
+            #         #     f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
+            #         name = self.copy_symbol_expiry_map[i]['name']
+            #         sorted_exp = sorted(self.copy_symbol_expiry_map[i]['expiry'])
+            #         if name == 'NIFTY':
+            #             new_exp = sorted_exp[:2]
+            #             dict_1 = {'NIFTY_CW': new_exp[0], 'NIFTY_NW': new_exp[1]}
+            #             for_table.append(dict_1)
+            #         elif name == 'BANKNIFTY':
+            #             new_exp = sorted_exp[:2]
+            #             dict_1 = {'BANKNIFTY_CW': new_exp[0], 'BANKNIFTY_NW': new_exp[1]}
+            #             for_table.append(dict_1)
+            #         elif name == 'FINNIFTY':
+            #             dict_1 = {'FINNIFTY': sorted_exp[0]}
+            #             for_table.append(dict_1)
+            #         else:
+            #             new_exp = sorted_exp[0]
+            #             dict_1 = {'MIDCPNIFTY': new_exp}
+            #             for_table.append(dict_1)
+            #     # print('\n for table dict is ', for_table)
+            #     # logger.info(f'\nfor_table dict is {for_table}')
+            #
+            #     final_json = []
+            #     for i in for_table:
+            #         for symbol, expiry in i.items():
+            #             # print(f'\n key{count} is {key} and value{count} is {value}')
+            #             # logger.info((f'\n original key is {symbol} and value is {expiry}'))
+            #             if symbol.startswith('NIFTY'):
+            #                 symbol1 = 'NIFTY'
+            #             elif symbol.startswith('BANK'):
+            #                 symbol1 = 'BANKNIFTY'
+            #             elif symbol.startswith('FIN'):
+            #                 symbol1 = 'FINNIFTY'
+            #             else:
+            #                 symbol1 = 'MIDCPNIFTY'
+            #             # logger.info(f'\n changed key is {symbol1} and value is {expiry}')
+            #             list_dict_resp = DBHandler.get_straddle_minima_table(symbol1, expiry)
+            #             # logger.info(f'\nlist_dict_resp is {list_dict_resp}')
+            #             # if symbol.startswith('NIFTY_CW'):
+            #             #     symbol2 = 'NF CW'
+            #             # elif symbol.startswith('BANKNIFTY_CW'):
+            #             #     symbol2 = 'BN CW'
+            #             # elif symbol.startswith('FINNIFTY'):
+            #             #     symbol2 = 'FN CW'
+            #             # elif symbol.startswith('MIDCPNIFTY'):
+            #             #     symbol2 = 'MN CW'
+            #             # elif symbol.startswith('NIFTY_NW'):
+            #             #     symbol2 = 'NF NW'
+            #             # elif symbol.startswith('BANKNIFTY_NW'):
+            #             #     symbol2 = 'BN NW'
+            #             new_dict = {symbol: list_dict_resp}
+            #             # logger.info(f'\nnew_dict is {new_dict}')
+            #             final_json.append(new_dict)
+            #             # logger.info(f'\nmaking final json resp- {final_json}')
+            #
+            #     # logger.info(f'\nFINAL JSON RESP IS {final_json}')
+            #     # df_json = df.to_json()
+            #     # logger.info(f'\n df to json is {df_json}')
+            #     # df_json = df.to_dict('records')
+            #     # self.copy_symbol_expiry_map = None
+            #     return final_json
+            # else:
+            #     # return None
+            #     empty_json = [
+            #             {
+            #                 "BANKNIFTY_CW": [
+            #                     {
+            #                         "Live": 0,
+            #                         "Live-Min": 0,
+            #                         "Max-Live": 0,
+            #                         "Max": 0,
+            #                         "Min": 0
+            #                     }
+            #                 ]
+            #             },
+            #             {
+            #                 "BANKNIFTY_NW": [
+            #                     {
+            #                         "Live": 0,
+            #                         "Live-Min": 0,
+            #                         "Max-Live": 0,
+            #                         "Max": 0,
+            #                         "Min": 0
+            #                     }
+            #                 ]
+            #             },
+            #             {
+            #                 "FINNIFTY": [
+            #                     {
+            #                         "Live": 0,
+            #                         "Live-Min": 0,
+            #                         "Max-Live": 0,
+            #                         "Max": 0,
+            #                         "Min": 0
+            #                     }
+            #                 ]
+            #             },
+            #             {
+            #                 "MIDCPNIFTY": [
+            #                     {
+            #                         "Live": 0,
+            #                         "Live-Min": 0,
+            #                         "Max-Live": 0,
+            #                         "Max": 0,
+            #                         "Min": 0
+            #                     }
+            #                 ]
+            #             },
+            #             {
+            #                 "NIFTY_CW": [
+            #                     {
+            #                         "Live": 0,
+            #                         "Live-Min": 0,
+            #                         "Max-Live": 0,
+            #                         "Max": 0,
+            #                         "Min": 0
+            #                     }
+            #                 ]
+            #             },
+            #             {
+            #                 "NIFTY_NW": [
+            #                     {
+            #                         "Live": 0,
+            #                         "Live-Min": 0,
+            #                         "Max-Live": 0,
+            #                         "Max": 0,
+            #                         "Min": 0
+            #                     }
+            #                 ]
+            #             }
+            #         ]
+            #     return empty_json
             for i in range(len(self.copy_symbol_expiry_map)):
                 #     print(f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
-                logger.info(
-                    f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
-                name = self.copy_symbol_expiry_map[i]['name'];
+                # logger.info(
+                #     f'\n expiry of each symbol is {self.copy_symbol_expiry_map[i]["name"]} {sorted(self.copy_symbol_expiry_map[i]["expiry"])}')
+                name = self.copy_symbol_expiry_map[i]['name']
                 sorted_exp = sorted(self.copy_symbol_expiry_map[i]['expiry'])
                 if name == 'NIFTY':
                     new_exp = sorted_exp[:2]
@@ -150,13 +355,13 @@ class ServiceApp:
                     dict_1 = {'MIDCPNIFTY': new_exp}
                     for_table.append(dict_1)
             # print('\n for table dict is ', for_table)
-            logger.info(f'\nfor_table dict is {for_table}')
+            # logger.info(f'\nfor_table dict is {for_table}')
 
             final_json = []
             for i in for_table:
                 for symbol, expiry in i.items():
                     # print(f'\n key{count} is {key} and value{count} is {value}')
-                    logger.info((f'\n original key is {symbol} and value is {expiry}'))
+                    # logger.info((f'\n original key is {symbol} and value is {expiry}'))
                     if symbol.startswith('NIFTY'):
                         symbol1 = 'NIFTY'
                     elif symbol.startswith('BANK'):
@@ -165,9 +370,9 @@ class ServiceApp:
                         symbol1 = 'FINNIFTY'
                     else:
                         symbol1 = 'MIDCPNIFTY'
-                    logger.info(f'\n changed key is {symbol1} and value is {expiry}')
+                    # logger.info(f'\n changed key is {symbol1} and value is {expiry}')
                     list_dict_resp = DBHandler.get_straddle_minima_table(symbol1, expiry)
-                    logger.info(f'\nlist_dict_resp is {list_dict_resp}')
+                    # logger.info(f'\nlist_dict_resp is {list_dict_resp}')
                     # if symbol.startswith('NIFTY_CW'):
                     #     symbol2 = 'NF CW'
                     # elif symbol.startswith('BANKNIFTY_CW'):
@@ -181,11 +386,11 @@ class ServiceApp:
                     # elif symbol.startswith('BANKNIFTY_NW'):
                     #     symbol2 = 'BN NW'
                     new_dict = {symbol: list_dict_resp}
-                    logger.info(f'\nnew_dict is {new_dict}')
+                    # logger.info(f'\nnew_dict is {new_dict}')
                     final_json.append(new_dict)
-                    logger.info(f'\nmaking final json resp- {final_json}')
+                    # logger.info(f'\nmaking final json resp- {final_json}')
 
-            logger.info(f'\nFINAL JSON RESP IS {final_json}')
+            # logger.info(f'\nFINAL JSON RESP IS {final_json}')
             # df_json = df.to_json()
             # logger.info(f'\n df to json is {df_json}')
             # df_json = df.to_dict('records')
@@ -329,4 +534,4 @@ service = ServiceApp()
 app = service.app
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host='0.0.0.0', port=8851, workers=2)
+    uvicorn.run('app:app', host='0.0.0.0', port=8801, workers=2)

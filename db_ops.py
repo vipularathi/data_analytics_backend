@@ -210,12 +210,12 @@ class DBHandler:
         query = f"""
             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, combined_premium
             FROM {n_tbl_opt_straddle}
-            WHERE underlying=%(symbol)s and expiry=%(expiry)s and minima=true and "timestamp">='{start_from}';
+            WHERE underlying='{symbol}' and expiry='{expiry}' and minima=true and "timestamp">='{start_from}';
         """
-        df = read_sql_df(query, params={'symbol':symbol, 'expiry':expiry})
-        logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
-        logger.info(f"\nLive is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
-        logger.info('\n df sent for trucation')
+        df = read_sql_df(query)
+        logger.info(f'\ndf made from read_sql_df for {symbol} {expiry} is \n{df}')
+        logger.info(f"\nfor {symbol} {expiry} Live is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
+        logger.info(f'\nfor {symbol} {expiry} df sent for trucation')
         table_dict = calculate_table_data(df)
         return table_dict
 

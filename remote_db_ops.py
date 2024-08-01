@@ -11,7 +11,11 @@ from common import logger, today
 # from remote_db_config import engine_str
 
 execute_retry = True
-db_name = f'algo_backend'
+# db_name = f'algo_backend'
+# pg_user = 'postgres'
+# pg_pass = 'Vivek001'
+# pg_host = '172.16.47.54'
+db_name = f'data_arathi_9_apr_2024'
 pg_user = 'postgres'
 pg_pass = 'Vivek001'
 pg_host = '172.16.47.54'
@@ -35,23 +39,46 @@ def get_master():
     #     )
     #     order by expiry_date
     # """
+    # query = f"""
+    #     SELECT expiry_date, symbol
+    #     FROM (
+    #         SELECT DISTINCT(expiry), TO_DATE(expiry, 'DDMONYYYY') AS expiry_date, symbol
+    #         FROM fnomaster
+    #         WHERE symbol in ('NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY')
+    #         and (
+    #             to_date(expiry, 'ddmonyyyy') >= current_date
+    #             and extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) 
+    #             and extract(year from to_date(expiry, 'ddmonyyyy')) = extract(year from current_date)
+    #             or extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) + 1
+    #             and extract(year from to_date(expiry, 'ddmonyyyy')) = extract(year from current_date)
+    #             or extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) + 2
+    #             and extract(year from to_date(expiry, 'ddmonyyyy')) = extract(year from current_date)
+    #         )
+    #     )
+    #     ORDER BY expiry_date
+    # """
+
     query = f"""
-        SELECT expiry_date, symbol
+        SELECT expiry, symbol
         FROM (
-            SELECT DISTINCT(expiry), TO_DATE(expiry, 'DDMONYYYY') AS expiry_date, symbol
-            FROM fnomaster
-            WHERE symbol in ('NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY')
-            and (
-                to_date(expiry, 'ddmonyyyy') >= current_date
-                and extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) 
-                and extract(year from to_date(expiry, 'ddmonyyyy')) = extract(year from current_date)
-                or extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) + 1
-                and extract(year from to_date(expiry, 'ddmonyyyy')) = extract(year from current_date)
-                or extract(month from to_date(expiry, 'ddmonyyyy')) = extract(month from current_date) + 2
-                and extract(year from to_date(expiry, 'ddmonyyyy')) = extract(year from current_date)
+            SELECT DISTINCT expiry, symbol
+            FROM xts_master
+            WHERE symbol IN ('NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY')
+            AND (
+                expiry >= current_date
+                AND (
+                    (EXTRACT(month FROM expiry) = EXTRACT(month FROM current_date)
+                     AND EXTRACT(year FROM expiry) = EXTRACT(year FROM current_date))
+                    OR
+                    (EXTRACT(month FROM expiry) = mod((EXTRACT(month FROM current_date) + 1), 12)
+                     AND EXTRACT(year FROM expiry) = EXTRACT(year FROM current_date) + (CASE WHEN EXTRACT(month FROM current_date) = 12 THEN 1 ELSE 0 END))
+                    OR
+                    (EXTRACT(month FROM expiry) = mod((EXTRACT(month FROM current_date) + 2), 12)
+                     AND EXTRACT(year FROM expiry) = EXTRACT(year FROM current_date) + (CASE WHEN EXTRACT(month FROM current_date) >= 11 THEN 1 ELSE 0 END))
+                )
             )
-        )
-        ORDER BY expiry_date
+        ) AS subquery
+        ORDER BY expiry
     """
     master_df = pd.read_sql_query(query, conn)
     # logger.info('\ndf made from read_sql_query is \n', master_df)

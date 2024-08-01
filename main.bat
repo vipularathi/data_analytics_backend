@@ -1,3 +1,2 @@
-cd D:\iv_charts_2\iv_filter
-D:\iv_charts_2\iv_filter\venv\Scripts\python.exe main.py
-PAUSE
+cd C:\Users\colo\iv_charts\july62024_USE_THIS\data_analytics_backend
+C:\Users\colo\iv_charts\july62024_USE_THIS\data_analytics_backend\venv\Scripts\python.exe main.py
