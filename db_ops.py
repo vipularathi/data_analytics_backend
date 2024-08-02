@@ -777,11 +777,11 @@ class DBHandler:
 
     @classmethod
     def get_straddle_minima(cls, symbol, expiry, start_from=today, table: bool = False):
-        # # logger.info('get_straddle_minima')
+        start_from1 = start_from.replace(hour=9, minute=16, second=0)
         query = f"""
             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv
             FROM {n_tbl_opt_straddle}
-            WHERE underlying='{symbol}' and date(expiry)='{expiry}' and minima='true' and "timestamp"::timestamp>='{start_from}';
+            WHERE underlying='{symbol}' and date(expiry)='{expiry}' and minima='true' and "timestamp"::timestamp>='{start_from1}';
         """
         df = read_sql_df(query)
         # df = execute_query(query)

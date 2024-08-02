@@ -144,7 +144,7 @@ def fixed_response_dict():
     time_list = []
     try:
         if type(today) == type(pd.Timestamp(today)):
-            start_time = today.replace(hour = 9, minute =15, second =0)
+            start_time = today.replace(hour = 9, minute =16, second =0)
             end_time = today.replace(hour=15, minute=30, second=0)
             # logger.info(f'start time - {start_time}\tend time - {end_time}')
             interval = timedelta(minutes = 1)
