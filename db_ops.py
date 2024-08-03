@@ -781,7 +781,11 @@ class DBHandler:
         query = f"""
             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv
             FROM {n_tbl_opt_straddle}
-            WHERE underlying='{symbol}' and date(expiry)='{expiry}' and minima='true' and "timestamp"::timestamp>='{start_from1}';
+            WHERE underlying='{symbol}' and date(expiry)='{expiry}' 
+            and minima='true' 
+            and "timestamp"::timestamp>='{start_from1}' 
+            and call_oi > '{threshold_limit}' 
+            and put_oi > '{threshold_limit}';
         """
         df = read_sql_df(query)
         # df = execute_query(query)

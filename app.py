@@ -1501,7 +1501,7 @@ class ServiceApp:
         uq_strikes.sort()
         strikes = uq_strikes[uq_strikes <= mean][-l_st:].tolist() + uq_strikes[uq_strikes > mean][:u_st].tolist()
         logger.info(f'\n uq_strikes are \n{uq_strikes}, \n strikes are \n{strikes}')
-        df: pd.DataFrame = df[df['strike'].isin(uq_strikes)].copy()
+        df: pd.DataFrame = df[df['strike'].isin(strikes)].copy()
         # # logger.info(f'df before drop is \n {df}')
         df.drop(columns=['spot', 'range'], errors='ignore', inplace=True)
         df.sort_values(['ts', 'strike'], inplace=True)
