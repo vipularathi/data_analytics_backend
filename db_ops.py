@@ -783,9 +783,11 @@ class DBHandler:
             FROM {n_tbl_opt_straddle}
             WHERE underlying='{symbol}' and date(expiry)='{expiry}' 
             and minima='true' 
-            and "timestamp"::timestamp>='{start_from1}' 
-            and call_oi > '{threshold_limit}' 
-            and put_oi > '{threshold_limit}';
+            and "timestamp"::timestamp>='{start_from1}'
+            and call_oi > '{threshold_limit}'
+            and put_oi > '{threshold_limit}' 
+            and call_iv is not null
+            and put_iv is not null;
         """
         df = read_sql_df(query)
         # df = execute_query(query)

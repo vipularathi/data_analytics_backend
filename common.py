@@ -1,7 +1,7 @@
 # import logging
 # import os
 # import sys
-# from datetime import datetime
+# from datetime import datetime, time, timedelta
 # from logging.handlers import TimedRotatingFileHandler
 #
 # import pandas as pd
@@ -58,6 +58,44 @@
 #     # logger.propagate = False  # Removes AWS Level Logging as it tracks root propagation as well
 #     return _logger
 #
+# # def list_dict():
+# #     time_list = []
+# #     try:
+# #         if type(today.to_pydatetime().date()) == type(datetime.now().date()):
+# #             start_time = datetime.strptime(f'{today.to_pydatetime().date()} 09:15:00', '%Y-%m-%d %H:%M:%S')
+# #             end_time = datetime.strptime(f'{today.to_pydatetime().date()} 15:30:00', '%Y-%m-%d %H:%M:%S')
+# #             print(start_time)
+# #             interval = timedelta(minutes = 1)
+# #             current_time = start_time
+# #
+# #             while current_time <= end_time:
+# #                 time_list.append({'ts':current_time, 'strike':0, 'combined_premium':0})
+# #                 current_time += interval
+# #
+# #             return time_list
+# #     except Exception as e:
+# #         logger.error(f'Error in list_dict: {str(e)}')
+# #         return []
+#
+# def fixed_response_dict():
+#     time_list = []
+#     try:
+#         if type(today) == type(pd.Timestamp(today)):
+#             start_time = today.replace(hour = 9, minute =16, second =0)
+#             end_time = today.replace(hour=15, minute=30, second=0)
+#             # logger.info(f'start time - {start_time}\tend time - {end_time}')
+#             interval = timedelta(minutes = 1)
+#             current_time = start_time
+#
+#             while current_time <= end_time:
+#                 # ts, spot, strike, combined_premium, combined_iv, otm_iv
+#                 time_list.append({'ts':current_time, 'spot':0, 'strike':0, 'combined_premium':0, 'combined_iv':0, 'otm_iv':0, 'prev':False})
+#                 current_time += interval
+#
+#             return time_list
+#     except Exception as e:
+#         logger.error(f'Error in list_dict: {str(e)}')
+#         return []
 #
 # logger = define_logger()
 
@@ -84,6 +122,13 @@ data_dir = os.path.join(root_dir,'data/')
 dir_list = [logs_dir, data_dir]
 status = [os.makedirs(_dir, exist_ok=True) for _dir in dir_list if not os.path.exists(_dir)]
 instruments_path = os.path.join(data_dir, 'instruments.csv')  # Unique for each day. No History available.
+
+multiple = {
+        'BANKNIFTY': 100,
+        'NIFTY': 50,
+        'FINNIFTY': 50,
+        'MIDCPNIFTY': 25
+}
 
 holidays_23 = ['2023-01-26', '2023-03-07', '2023-03-30', '2023-04-04', '2023-04-07', '2023-04-14', '2023-05-01', '2023-06-29', '2023-08-15', '2023-09-19', '2023-10-02', '2023-10-24', '2023-11-14', '2023-11-27', '2023-12-25']
 holidays_24 = ['2024-01-22', '2024-01-26', '2024-03-08', '2024-03-25', '2024-03-29', '2024-04-11', '2024-04-17', '2024-05-01','2024-05-20', '2024-06-17', '2024-07-17', '2024-08-15', '2024-10-02', '2024-11-01', '2024-11-15', '2024-12-25']
@@ -140,11 +185,16 @@ def define_logger():
 #         logger.error(f'Error in list_dict: {str(e)}')
 #         return []
 
+def round_spot(symbol, spot):
+    spot_multiple = float(multiple[symbol])
+    rounded_spot = int(spot_multiple * round(spot//spot_multiple))
+    return rounded_spot
+
 def fixed_response_dict():
     time_list = []
     try:
         if type(today) == type(pd.Timestamp(today)):
-            start_time = today.replace(hour = 9, minute =16, second =0)
+            start_time = today.replace(hour = 9, minute =15, second =0)
             end_time = today.replace(hour=15, minute=30, second=0)
             # logger.info(f'start time - {start_time}\tend time - {end_time}')
             interval = timedelta(minutes = 1)
@@ -161,4 +211,3 @@ def fixed_response_dict():
         return []
 
 logger = define_logger()
-
