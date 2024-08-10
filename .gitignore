@@ -1,0 +1,15 @@
+.idea
+.vscode
+entity_data
+logs
+test*.py
+venv
+*.zip
+*.ipynb
+extra
+*.csv
+data
+MID*.xlsx
+NIFTY*.xlsx
+BANK*.xlsx
+FIN*.xlsx
