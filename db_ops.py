@@ -10,8 +10,7 @@ from sqlalchemy import insert, select, text
 
 from common import logger, today, data_dir
 from db_config import engine_str, use_sqlite, s_tbl_snap, n_tbl_snap, s_tbl_opt_greeks, n_tbl_opt_greeks, \
-    s_tbl_opt_straddle, \
-    n_tbl_opt_straddle, n_tbl_master, s_tbl_master
+    s_tbl_opt_straddle, n_tbl_opt_straddle, n_tbl_master, s_tbl_master
 
 execute_retry = True
 pool = sql.create_engine(engine_str, pool_size=10, max_overflow=5, pool_recycle=67, pool_timeout=30, echo=None)
@@ -35,9 +34,6 @@ def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, i
     """
     st = time()
     logger.debug(f'Data Insertion started for {table.name}')
-    # # logger.info(f'Data Insertion started for {table.name}')
-    # engine_con_str = engine_address if engine_address is not None else engine_str
-    # engine = sql.create_engine(engine_con_str)
     ins = table.insert()
     if ignore:
         if use_sqlite:
@@ -56,8 +52,6 @@ def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, i
             conn.execute(ins, dict_data, multi=multi)
         except sql_exec.OperationalError as e:
             if retry > 0:
-                # # logger.info(f"Error for {table.name}: {e}")
-                # # logger.info(f'Retrying to insert data in {table.name} after {wait_period} seconds')
                 sleep(wait_period)
                 insert_data(table=table, dict_data=dict_data, engine_address=engine_address, multi=multi, ignore=ignore,
                             truncate=truncate, retry=retry - 1, wait_period=wait_period)
@@ -66,7 +60,6 @@ def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, i
         conn.close()
 
     logger.debug(f"Data Inserted in {table.name} in: {time() - st} secs")
-    # # logger.info(f"Data Inserted in {table.name} in: {time() - st} secs")
 
 
 def insert_data_df(table, data: pd.DataFrame, truncate=False, master=False):
@@ -75,10 +68,7 @@ def insert_data_df(table, data: pd.DataFrame, truncate=False, master=False):
         conn.execute(f'TRUNCATE TABLE {table.name}')
     if master:
         st = time()
-        # # logger.info(f'Data insertion started for master')
         response = data.to_sql(table, con=conn, if_exists='replace', index=False)
-        # df.to_sql(tablename, conn, if_exists='replace', index=False)
-        # # logger.info(f'Data insertion completed for master in: {time() - st} secs')
         return response
     else:
         response = data.to_sql(table.name, con=conn, if_exists='append', index=False, method='multi')
@@ -91,8 +81,6 @@ def execute_query(query, retry=2, wait_period=5, params=None):
         params = {}
     st = time()
     short_query = query[:int(len(query) * 0.25)] if type(query) is str else ''
-    # logger.debug(f'Executing query...{short_query}...')
-    # engine = sql.create_engine(engine_str)
     try:
         with pool.connect() as conn:
             try:
@@ -103,8 +91,6 @@ def execute_query(query, retry=2, wait_period=5, params=None):
             conn.close()
     except sql_exec.OperationalError as e:
         if retry > 0:
-            # # logger.info(f"Error for Query {short_query}: {e}")
-            # # logger.info(f'Retrying to execute query {short_query} after {wait_period} seconds')
             sleep(wait_period)
             result = execute_query(query=query, retry=retry - 1, wait_period=wait_period)
         else:
@@ -116,17 +102,11 @@ def execute_query(query, retry=2, wait_period=5, params=None):
 
 def read_sql_df(query, params=None, commit=False):
     st = time()
-    # logger.debug(f"Reading query..{query[:int(len(query)*0.25)]}...")
-    # # # logger.info(f"Reading query..{query[:int(len(query) * 0.25)]}...")
-    # engine = sql.create_engine(engine_str)
     conn = pool.connect()
     df = pd.read_sql(query, conn, params=params)
     if commit:
         conn.execute('commit')
     conn.close()
-    # engine.dispose()
-    # logger.debug(f'Data read in {time() - st} secs')
-    # # logger.info(f'Data read in {time() - st} secs')
     return df
 
 
@@ -144,10 +124,6 @@ def calculate_table_data(df):
         'Max': max_straddle,
         'Min': min_straddle
     }]
-    # # # logger.info(f'\nret_dict is {ret_dict}')
-    # ret_df = pd.DataFrame.from_dict(ret_dict)
-    # dict_to_json = [{i:ret_dict[i]} for i in ret_dict]
-    # # # logger.info(f'\n dict_to_json is {dict_to_json}')
     return ret_dict
 
 
@@ -158,9 +134,6 @@ class DBHandler:
 
     @classmethod
     def check_user_exist(cls, email):
-        # query = '''SELECT * FROM users;'''
-        # response = execute_query(query)
-
         query = '''SELECT email, password FROM chart_users WHERE email = :email'''
         response = execute_query(query, params={"email": email})
         data = response.fetchone()
@@ -178,7 +151,6 @@ class DBHandler:
 
     @classmethod
     def insert_snap_data(cls, db_data: list[dict]):
-        # # logger.info('insert_snap>insert_data')
         insert_data(s_tbl_snap, db_data, ignore=True)
 
     @classmethod
@@ -213,12 +185,8 @@ class DBHandler:
             and put_iv is not null;
         """
         df = read_sql_df(query)
-        # df = execute_query(query)
 
         if table:
-            # # logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
-            # # logger.info(f"\nLive is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
-            # # logger.info('\n df sent for trucation')
             table_df = calculate_table_data(df)
             return table_df
         else:
@@ -236,12 +204,8 @@ class DBHandler:
                 and "timestamp"::timestamp>='{start_from1}';
             """
         df = read_sql_df(query)
-        # df = execute_query(query)
 
         if table:
-            # # logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
-            # # logger.info(f"\nLive is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
-            # # logger.info('\n df sent for trucation')
             table_df = calculate_table_data(df)
             return table_df
         else:
@@ -256,21 +220,9 @@ class DBHandler:
             WHERE underlying='{symbol}' and date(expiry)='{expiry}' and minima='true' and "timestamp">'{start_from}';
         """
         df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry})
-        # # # logger.info(f'\ndf made from read_sql_df is \n{df.head()}')
-        # # logger.info(f"\nLive is {df['combined_premium'].iloc[-1]} max = {df['combined_premium'].max()} \t min is {df['combined_premium'].min()}")
-        # # # logger.info('\n df sent for trucation')
         table_dict = calculate_table_data(df)
         return table_dict
 
-    # @classmethod
-    # def get_straddle_iv_data(cls, symbol, expiry, start_from=today):
-    #     query = f"""
-    #             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima
-    #             FROM {n_tbl_opt_straddle}
-    #             WHERE underlying=%(symbol)s and expiry=%(expiry)s and "timestamp">='{start_from}';
-    #         """
-    #     df = read_sql_df(query, params={'symbol': symbol, 'expiry': expiry})
-    #     return df
 
     @classmethod
     def get_straddle_iv_data(cls, symbol, expiry, start_from=today):
@@ -285,10 +237,6 @@ class DBHandler:
                     and combined_premium is not null;
                 """
         df = read_sql_df(query)
-        # # # logger.info(f'strd iv df for {symbol} {expiry} is\n  {df}')
-        # df = df[(df['call_oi']>10000) & (df['put_oi']>10000)]
-        # tr = datetime.now().time().replace(microsecond=0).strftime("%H_%M_%S")
-        # df.to_csv(os.path.join(data_dir, f'iv_data_{symbol}_{expiry}_{tr}.csv'))
         return df
 
     @classmethod
@@ -301,18 +249,12 @@ class DBHandler:
                     and "timestamp"::timestamp>='{start_from}';
                 """
         df = read_sql_df(query)
-        # # # logger.info(f'strd iv df for {symbol} {expiry} is\n  {df}')
-        # df = df[(df['call_oi']>10000) & (df['put_oi']>10000)]
-        # tr = datetime.now().time().replace(microsecond=0).strftime("%H_%M_%S")
-        # df.to_csv(os.path.join(data_dir, f'iv_data_{symbol}_{expiry}_{tr}.csv'))
         return df
 
     @classmethod
     def delete_old_data(cls):
         table_list = [n_tbl_snap, n_tbl_opt_greeks, n_tbl_opt_straddle]
-        a = (today - timedelta(days=30)).date().strftime("%Y-%m-%d")
-        # b = pd.to_datetime('2024-05-20').date().strftime('%Y-%m-%d')
-        # c = '2024-05-20'
+        a = (today - timedelta(days=7)).date().strftime("%Y-%m-%d")
         for each_table in table_list:
             delete_query = f"""
                         DELETE FROM {each_table} WHERE "timestamp"<:cutoff_date
@@ -320,6 +262,3 @@ class DBHandler:
             result = execute_query(delete_query, params={'cutoff_date': a})
             # # logger.info(result)
         return True
-
-# res = DBHandler.get_straddle_iv_data(symbol = 'NIFTY', expiry = '2024-07-25')
-# # # logger.info(res)

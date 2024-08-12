@@ -11,35 +11,16 @@ from common import today
 use_sqlite = False  # Used in Table DDL as well
 rdbms_type = 'postgres'
 
-# db_name = f'data_{today.strftime(dt_fmt_1)}'
-# db_name = f'data_arathi'
-# pg_user = 'postgres'
-# pg_pass = 'E6ymrG80or51s7y'
-# pg_host = 'localhost'
 db_name = f'data_arathi_9_apr_2024'
 pg_user = 'postgres'
 pg_pass = 'root'
 pg_host = '172.16.47.81'
 pg_port = '5432'
-# db_name = f'data_analytics'
-# pg_user = 'postgres'
-# pg_pass = 'Vivek001'
-# pg_host = '172.16.47.54'
+
 engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{db_name}"
 temp_engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}"
 
-# with create_engine(temp_engine_str, isolation_level='AUTOCOMMIT').connect() as conn:
-#     # res = conn.execute(f"select * from pg_database where datname='{db_name}';")
-#     res = conn.execute(f"select * from pg_database where datname=data_arathi;")
-#     rows = res.rowcount > 0
-#     if not rows:
-#         # conn.execute('commit')
-#         res_db = conn.execute(f'CREATE DATABASE {db_name};')
-#         print(f"DB created {db_name}. Response: {res_db.rowcount}")
-
-# Create an engine and connect to the database
 with create_engine(temp_engine_str, isolation_level='AUTOCOMMIT').connect() as conn:
-    # Correctly use SQLAlchemy text function to create a SQL expression object
     res = conn.execute(text(f"SELECT * FROM pg_database WHERE datname = :db_name"), {'db_name': db_name})
     rows = res.rowcount > 0
 

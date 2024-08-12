@@ -85,12 +85,3 @@ def main():
             client.connect()
         except Exception as exc:
             logger.error(f"Error in connection: {exc}")
-
-
-# if __name__ == '__main__':
-#     info = login()
-#     access_token = info['result']['token']
-#     main()
-
-a = login()
-print(a)

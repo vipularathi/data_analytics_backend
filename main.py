@@ -42,11 +42,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # ins = get_instruments()
-    # login()
-    # subscribe_index()
-    # connect_socket(socket_url, access_token=access_token, user_id=user_id)
-    # get_req_contracts()
     main()
     now_ = datetime.now()
 

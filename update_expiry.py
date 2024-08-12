@@ -108,14 +108,8 @@ def update_expiry():
     df['expiry'] = pd.to_datetime(df['expiry'], dayfirst = True)
     grouped_df = df.groupby(['symbol']).agg({'expiry':list})
     exploded_df = df.explode('expiry')
-    # logger.info('\n', df)
-    # logger.info('\n', grouped_df)
-    # logger.info('\n', exploded_df)
 
     df.to_excel(os.path.join(root_dir, 'symbols.xlsx'), index = False)
     logger.info('\n expiry file updated')
     print('done')
     return(df)
-
-# a = update_expiry()
-# print(a)

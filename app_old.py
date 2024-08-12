@@ -111,84 +111,6 @@ class ServiceApp:
             self.copy_symbol_expiry_map = self.symbol_expiry_map.copy()
         return self.symbol_expiry_map
 
-    # def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
-    #                           interval: int = Query(1), cont: bool = Query(False)):
-    #     # logger.info(f'{symbol} {expiry} and cont is {cont}')
-    #     if cont:
-    #         df_yest = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
-    #         df_yest['prev'] = df_yest['ts'] < today
-    #         df_yest = df_yest[df_yest['prev'] == True]
-    #         # # logger.info(f'fetch straddle with 1 {symbol} {expiry}')
-    #         df_today = DBHandler.get_straddle_minima(symbol, expiry, start_from=today)
-    #         df_today['prev'] = df_today['ts'] < today
-    #         # df_orig = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
-    #         # df_yest = df_orig[df_orig['ts'] < today].copy()
-    #         # df_yest['prev'] = True
-    #         # df_today = df_orig[df_orig['ts'] >= today].copy()
-    #         # df_today['prev'] = False
-    #
-    #         # df_orig = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
-    #         # df_orig['prev'] = df_orig['ts'] < today
-    #         # df_yest = df_orig[df_orig['prev'] == True].copy()
-    #         # df_today = df_orig[df_orig['prev'] == False].copy()
-    #     else:
-    #         # df = DBHandler.get_straddle_minima(symbol, expiry)
-    #         # df['prev'] = False
-    #         # # logger.info(f'fetch straddle with 2 {symbol} {expiry}')
-    #         df_today = DBHandler.get_straddle_minima(symbol, expiry)
-    #         df_today['prev'] = False
-    #     if self.use_otm_iv:
-    #         if cont:
-    #             df_yest['combined_iv'] = df_yest['otm_iv']
-    #             df_today['combined_iv'] = df_today['otm_iv']
-    #         else:
-    #             df_today['combined_iv'] = df_today['otm_iv']
-    #     # # logger.info(f'\ndf of {symbol} {expiry} fetched from db is \n {df}')
-    #
-    #     # if symbol == 'NIFTY' and expiry == '2024-07-18':
-    #     #     df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw.csv", index = False)
-    #     #     fixed_df = pd.read_csv(r"D:\iv_charts_2\iv_filter_2\data_analytics_backend\test_time_data_nifty_cw.csv",
-    #     #                      index=False)
-    #
-    #     fixed_resp = fixed_response_dict()
-    #     fixed_df = pd.DataFrame(fixed_resp)
-    #     # # logger.info(f'\nfixed df is \n{fixed_df.head()}')
-    #     df_yest['ts'] = pd.to_datetime(df_yest['ts'])
-    #     df_today['ts'] = pd.to_datetime(df_today['ts'])
-    #     fixed_df['ts'] = pd.to_datetime(fixed_df['ts'])
-    #     # logger.info(f'changed ts in all 3 df')
-    #
-    #     # # mtd-1
-    #     # merged_df = pd.merge(fixed_df, df[['ts', 'strike', 'combined_premium']], on='ts', how='left')
-    #     # # logger.info(f'orig merged df is \n{merged_df}')
-    #     # merged_df['strike'] = merged_df['strike'].fillna(0).astype(int)
-    #     # # logger.info(f'merged df after strike is \n {merged_df}')
-    #     # merged_df['combined_premium'] = merged_df['combined_premium'].fillna(0).astype(int)
-    #     # # logger.info(f'merged df after combined_premium is \n {merged_df}')
-    #
-    #     # mtd-2
-    #     fixed_df.set_index('ts')
-    #     # logger.info(f'fixed df {symbol} {expiry} is {fixed_df}')
-    #     df_today.set_index('ts')
-    #     # logger.info(f'df today {symbol} {expiry} is {df_today}')
-    #     df_yest.set_index('ts')
-    #     # logger.info(f'df yest {symbol} {expiry} is {df_yest}')
-    #     fixed_df.update(df_today[['spot','strike', 'combined_premium','combined_iv', 'otm_iv', 'prev']])
-    #     merged_df = fixed_df.copy()
-    #     # logger.info(f'updated merged df {symbol} {expiry} is \n{merged_df}')
-    #     final_df = pd.concat([df_yest, merged_df], axis=0)
-    #     # final_df[[]].fillna(0, inplace=True)
-    #     # final_df = final_df.apply(lambda col: col.fillna(0) if col.name != 'prev' else col)
-    #     # df_yest.update(merged_df[['spot','strike', 'combined_premium','combined_iv', 'otm_iv']])
-    #     # final_df = df_yest.copy()
-    #     # logger.info(f'final df {symbol} {expiry} after updation is \n{final_df}')
-    #
-    #     # # logger.info(f'merged df {symbol} {expiry} after updation is \n{final_df}')
-    #     final_df.reset_index()
-    #
-    #     # logger.info(f'\nmerged_df {symbol} {expiry} is \n {final_df}')
-    #     return self._straddle_response(final_df, count=st_cnt, interval=interval)
-
     def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
                               interval: int = Query(1), cont: bool = Query(False)):
         # logger.info(f'{symbol} {expiry} and cont is {cont}')
@@ -460,101 +382,6 @@ class ServiceApp:
             df['combined_iv'] = df['otm_iv']
         return self._straddle_response(df, count=st_cnt, interval=interval)
 
-    # def fetch_straddle_cluster(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=15),
-    #                            interval: int = Query(5)):
-    #     all_df = DBHandler.get_straddle_iv_data(symbol, expiry, start_from=yesterday)
-    #     all_data = []
-    #     today_df = all_df[all_df['ts'] >= today].copy()
-    #     prev_df = all_df[all_df['ts'] < today].copy()
-    #     if len(prev_df):
-    #         max_ts = prev_df['ts'].max()
-    #         prev_df = prev_df[prev_df['ts'] == max_ts].copy()
-    #         all_data.append(prev_df)
-    #     if len(today_df):
-    #         all_data.append(today_df)
-    #
-    #     if all_data:
-    #         df = pd.concat(all_data, ignore_index=True, sort=False)
-    #     else:
-    #         df = all_df.iloc[:0]
-    #     if self.use_otm_iv:
-    #         df['combined_iv'] = df['otm_iv']
-    #     # allowed = pd.date_range(df['ts'].min(), df['ts'].max(), freq=interval)
-    #     # req = df[df['ts'].isin(allowed)].copy()
-    #     break_ts = time(12, 30, 0)
-    #     req1 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
-    #     req1 = req1[req1['ts'].dt.time <= break_ts].copy()
-    #     req2 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
-    #     req2 = req2[req2['ts'].dt.time > break_ts].copy()  # prev day covered here
-    #     d = [req1, req2]
-    #     # d = [req1]
-    #     d = [_d for _d in d if len(d)]
-    #     if d:
-    #         req = pd.concat(d, ignore_index=True, sort=False)
-    #         req.sort_values(['ts', 'strike'], inplace=True)
-    #     else:
-    #         req = pd.DataFrame(columns=req1.columns)
-    #     req = req.replace({np.NAN: None}).round(2)
-    #     strike_iv = req.groupby(['strike'], as_index=False).agg({'combined_iv': list, 'ts': list})
-    #     strike_iv.sort_values(['strike'], inplace=True)
-    #     strikes = strike_iv['strike'].tolist()
-    #     iv = list(zip(*strike_iv['combined_iv'].tolist()))
-    #     ts = list(zip(*strike_iv['ts'].tolist()))
-    #     return {'strikes': strikes, 'iv': iv, 'ts': ts}
-
-    # def fetch_straddle_cluster(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=15),
-    #                            interval: int = Query(5)):
-    #     all_df = DBHandler.get_straddle_iv_data(symbol, expiry, start_from=yesterday)
-    #     logger.info(f'\nall_df fetched from query for {symbol} {expiry} is \n {all_df}')
-    #     all_data = []
-    #     today_df = all_df[all_df['ts'] >= today].copy()
-    #     # # logger.info(f'\ntoday df for {symbol} {expiry} is \n {today_df}')
-    #     prev_df = all_df[all_df['ts'] < today].copy()
-    #     # # logger.info(f'\nprev df for {symbol} {expiry} is \n {prev_df}')
-    #     if len(prev_df):
-    #         max_ts = prev_df['ts'].max()
-    #         prev_df = prev_df[prev_df['ts'] == max_ts].copy()
-    #         all_data.append(prev_df)
-    #     if len(today_df):
-    #         all_data.append(today_df)
-    #
-    #     # # logger.info(f'\nall data before append for {symbol} {expiry} is \n {all_data}')
-    #     if all_data:
-    #         df = pd.concat(all_data, ignore_index=True, sort=False)
-    #     else:
-    #         df = all_df.iloc[:0]
-    #     # # logger.info(f'\nall data after append for {symbol} {expiry} is \n {all_data}')
-    #     # # logger.info(f'\ndf data after append for {symbol} {expiry} is \n {df}')
-    #     if self.use_otm_iv:
-    #         df['combined_iv'] = df['otm_iv']
-    #     # allowed = pd.date_range(df['ts'].min(), df['ts'].max(), freq=interval)
-    #     # req = df[df['ts'].isin(allowed)].copy()
-    #     break_ts = time(12, 30, 0)
-    #     # req1 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
-    #     # req1 = req1[req1['ts'].dt.time <= break_ts].copy()
-    #     # req2 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
-    #     # req2 = req2[req2['ts'].dt.time > break_ts].copy()  # prev day covered here
-    #     # d = [req1, req2]
-    #     # d = [_d for _d in d if len(d)]
-    #     # if d:
-    #     #     req = pd.concat(d, ignore_index=True, sort=False)
-    #     #     req.sort_values(['ts', 'strike'], inplace=True)
-    #     # # logger.info(f'\n df being sent to straddle response is \n{df}')
-    #     req = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
-    #     if req is not None:
-    #         req.sort_values(['ts', 'strike'], inplace=True)
-    #     else:
-    #         # req = pd.DataFrame(columns=req1.columns)
-    #         req = pd.DataFrame(columns=req.columns)
-    #     req = req.replace({np.NAN: None}).round(2)
-    #     strike_iv = req.groupby(['strike'], as_index=False).agg({'combined_iv': list, 'ts': list})
-    #     strike_iv.sort_values(['strike'], inplace=True)
-    #     strikes = strike_iv['strike'].tolist()
-    #     iv = list(zip(*strike_iv['combined_iv'].tolist()))
-    #     ts = list(zip(*strike_iv['ts'].tolist()))
-    #     logger.info(f'\nfetch straddle cluster Response for {symbol} {expiry}: \nstrikes={strikes}, \niv={iv}, \nts={ts}')
-    #     return {'strikes': strikes, 'iv': iv, 'ts': ts}
-
     def fetch_straddle_cluster(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=10),
                                interval: int = Query(5)):
         all_df = DBHandler.get_old_straddle_iv_data(symbol, expiry, start_from=yesterday)
@@ -574,31 +401,16 @@ class ServiceApp:
             df = all_df.iloc[:0]
         if self.use_otm_iv:
             df['combined_iv'] = df['otm_iv']
-        # allowed = pd.date_range(df['ts'].min(), df['ts'].max(), freq=interval)
-        # req = df[df['ts'].isin(allowed)].copy()
+
         break_ts = time(12, 30, 0)
-        # req1 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
-        # req1 = req1[req1['ts'].dt.time <= break_ts].copy()
-        # req2 = self._straddle_response(df, raw=True, count=st_cnt, interval=30)
-        # req2 = req2[req2['ts'].dt.time > break_ts].copy()  # prev day covered here
-        # d = [req1, req2]
-        # d = [_d for _d in d if len(d)]
-        # if d:
-        #     req = pd.concat(d, ignore_index=True, sort=False)
-        #     req.sort_values(['ts', 'strike'], inplace=True)
-        # logger.info(f'Dataframe values for symbol {symbol} for expiry::>>{expiry} is ::>>{df}')
-        # logger.info(f'strd cluster excel file made for {symbol} {expiry}')
-        # df.to_csv(f"{symbol}_{expiry}.csv", index=False)
+
         today_max_ts = df['ts'].unique().max()
         spot_today_max_ts = df['spot'][df['ts'] == today_max_ts].unique().tolist()
 
         logger.info(f'\n {symbol} {expiry} today max ts is {today_max_ts}\t type is {type(today_max_ts)}')
         logger.info(f'\n {symbol} {expiry} spot today max ts is {spot_today_max_ts}\t type is {type(spot_today_max_ts)}')
 
-        # rounded_spot = round_spot(symbol=symbol, spot_multiple=difference, spot=spot_today_max_ts[0])
-        # logger.info(f"\n{symbol} {expiry} rounded spot is {rounded_spot} \t type is {type(rounded_spot)}")
 
-        # list_exp = read_symbols.groupby(['symbol']).agg({'expiry': set})
         list_exp = read_symbols['expiry'][read_symbols['symbol'] == 'NIFTY'].tolist()
         logger.info(f'\n {symbol} {expiry} list_exp is {list_exp}')
 
@@ -628,30 +440,16 @@ class ServiceApp:
             req = pd.DataFrame(columns=req.columns)
 
         req = req.replace({np.NAN: None}).round(2)
-        # logger.info(f'Req body for symbol::{symbol} is  ::>> {req}')
-        # logger.info(f'req values for symbol {symbol} for expiry::>>{expiry} is ::>>{req}')
-        # req.to_csv(f"{symbol}.csv")
+
         strike_iv = req.groupby(['strike'], as_index=False).agg({'combined_iv': list, 'ts': list})
         strike_iv.sort_values(['strike'], inplace=True)
         strikes = strike_iv['strike'].tolist()
-        # iv = list(zip(*strike_iv['combined_iv'].tolist()))
-        # ts = list(zip(*strike_iv['ts'].tolist()))
-        # print(f'Strikes::>>>>{strikes} of symbol {symbol} of expiry {expiry}')
-        # print(f'iv::>>>>{iv} of symbol {symbol} of expiry {expiry}')
-        # print(f'ts::>>>>{ts} of symbol {symbol} of expiry {expiry}')
-        # Pad both combined_iv and ts to handle varying lengths
+
         max_len = max(len(x) for x in strike_iv['ts'])  # chk if len(strikes) == len(strikes_iv['ts'])
         strike_iv['combined_iv'] = strike_iv['combined_iv'].apply(lambda x: x + [None] * (max_len - len(x)))
         strike_iv['ts'] = strike_iv['ts'].apply(lambda x: x + [None] * (max_len - len(x)))
 
-        # iv = list(zip_longest(*strike_iv['combined_iv'].tolist(), fillvalue=None))
-        # ts = list(zip_longest(*strike_iv['ts'].tolist(), fillvalue=None))
 
-        # # Filter out None values from the aligned lists
-        # # iv = [list(filter(lambda x: x is not None, ivs)) for ivs in iv]
-        # ts = [list(filter(lambda x: x is not None, t)) for t in ts]
-
-        # -----
         combined_iv_list = strike_iv['combined_iv'].tolist()
         for i in range(len(combined_iv_list[0])): #interpolation
             for j in range(len(strikes)):
@@ -671,14 +469,12 @@ class ServiceApp:
                     if lesser_iv is not None and greater_iv is not None:
                         combined_iv_list[j][i] = (lesser_iv + greater_iv) / 2
 
-        # iv = list(zip_longest(*combined_iv_list, fillvalue=None))
-        # ts = list(zip_longest(*strike_iv['ts'].tolist(), fillvalue=None))
+
         iv = list(zip(*combined_iv_list))
         ts = list(zip(*strike_iv['ts'].tolist()))
         ts = [list(filter(lambda x: x is not None, t)) for t in ts]
 
-        # if rounded_spot < strikes[0]:
-        #     new_strikes =
+
 
         a = {'strikes': strikes, 'iv': iv, 'ts': ts, 'spot': [rounded_spot]}
         # logger.info(f"\n{symbol} {expiry} strd response is \n{a}")
@@ -766,8 +562,6 @@ class ServiceApp:
         #             break
         # logger.info(f'\nstraddle response df is {dict2}')
         return df.to_dict('records')
-    # response is LIST OF DICTIONARIES
-    # sample response = {"ts":1714384740000,"strike":22700.0,"combined_premium":190.1,"combined_iv":11.52,"otm_iv":11.52,"prev":false}
 
 
 service = ServiceApp()
