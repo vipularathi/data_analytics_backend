@@ -37,6 +37,7 @@ class ServiceApp:
         self.copy_symbol_expiry_map = None
         self.copy_symbol_expiry_spot = None
         self.list_dict = []
+        self.difference = None
 
     def add_routes(self):
         self.app.add_api_route('/', methods=['GET'], endpoint=self.default)
@@ -603,23 +604,23 @@ class ServiceApp:
         logger.info(f'\n {symbol} {expiry} list_exp is {list_exp}')
 
         if symbol == 'NIFTY' or symbol == 'FINNIFTY':
-            if expiry == list_exp[-1] or expiry == list_exp[-2]:
-                difference = 100
+            if pd.to_datetime(expiry) == pd.to_datetime(list_exp[-1]):
+                self.difference = 100
             else:
-                difference = 50
+                self.difference = 50
         elif symbol == 'BANKNIFTY':
-            difference = 100
+            self.difference = 100
         elif symbol == 'MIDCPNIFTY':
-            difference = 25
+            self.difference = 25
 
-        rounded_spot = round_spot(symbol=symbol, spot_multiple=difference, spot=spot_today_max_ts[0])
+        rounded_spot = round_spot(symbol=symbol, spot_multiple=self.difference, spot=spot_today_max_ts[0])
         logger.info(f"\n{symbol} {expiry} rounded spot is {rounded_spot} \t type is {type(rounded_spot)}")
 
-        self.list_dict.append({expiry: difference})
+        self.list_dict.append({symbol: [expiry, self.difference]})
         if len(self.list_dict) == 10:
             logger.info(f'\n list_dict of all s is \n{self.list_dict}')
 
-        req = self._straddle_response(df, raw=True, count=st_cnt, interval=30, spot = rounded_spot, diff = difference, sym=symbol, exp = str(expiry), strd_clst = True)
+        req = self._straddle_response(df, raw=True, count=st_cnt, interval=30, spot = rounded_spot, diff = self.difference, sym=symbol, exp = str(expiry), strd_clst = True)
 
         if req is not None:
             req.sort_values(['ts', 'strike'], inplace=True)

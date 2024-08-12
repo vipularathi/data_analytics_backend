@@ -92,3 +92,5 @@ def main():
 #     access_token = info['result']['token']
 #     main()
 
+a = login()
+print(a)
