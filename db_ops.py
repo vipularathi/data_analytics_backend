@@ -8,14 +8,14 @@ import sqlalchemy.exc as sql_exec
 import pandas as pd
 from sqlalchemy import insert, select, text
 
-from common import logger, today, data_dir
+from common import logger, today, data_dir, threshold_limit
 from db_config import engine_str, use_sqlite, s_tbl_snap, n_tbl_snap, s_tbl_opt_greeks, n_tbl_opt_greeks, \
     s_tbl_opt_straddle, n_tbl_opt_straddle, n_tbl_master, s_tbl_master
 
 execute_retry = True
 pool = sql.create_engine(engine_str, pool_size=10, max_overflow=5, pool_recycle=67, pool_timeout=30, echo=None)
 
-threshold_limit = 10000
+# threshold_limit = 10000
 
 
 def insert_data(table: sql.Table, dict_data, engine_address=None, multi=False, ignore=False, truncate=False, retry=1,
@@ -69,9 +69,8 @@ def insert_data_df(table, data: pd.DataFrame, truncate=False, master=False):
     if master:
         st = time()
         response = data.to_sql(table, con=conn, if_exists='replace', index=False)
-        return response
     else:
-        response = data.to_sql(table.name, con=conn, if_exists='append', index=False, method='multi')
+        response = data.to_sql(table, con=conn, if_exists='append', index=False, method='multi')
     conn.close()
     return response
 

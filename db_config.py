@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from urllib.parse import quote_plus
 import sqlalchemy as sql
 from sqlalchemy import MetaData, Table, Column, Integer, DateTime, DECIMAL, VARCHAR, TEXT, Index, UniqueConstraint, \
     func, BOOLEAN, create_engine, Date, ForeignKey, Enum, Time, Float, text
@@ -17,8 +17,16 @@ pg_pass = 'root'
 pg_host = '172.16.47.81'
 pg_port = '5432'
 
+remote_db_name = f'data_arathi_9_apr_2024'
+remote_pg_user = 'postgres'
+remote_pg_pass = 'Vivek001'
+remote_pg_host = '172.16.47.54'
+remote_pg_port = '5432'
+remote_pg_pass_encoded = quote_plus(remote_pg_pass)
+
 engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{db_name}"
 temp_engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}"
+remote_engine_str = f'postgresql+psycopg2://{remote_pg_user}:{remote_pg_pass}@{remote_pg_host}:{remote_pg_port}/{remote_db_name}'
 
 with create_engine(temp_engine_str, isolation_level='AUTOCOMMIT').connect() as conn:
     res = conn.execute(text(f"SELECT * FROM pg_database WHERE datname = :db_name"), {'db_name': db_name})

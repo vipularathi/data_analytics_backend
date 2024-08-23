@@ -26,6 +26,7 @@ header_kite_contract = {
 
 }
 
+sym_df = pd.DataFrame()
 
 def get_raw_contracts():
     st = time()
@@ -102,7 +103,7 @@ def entity_expiry():
             logger.error('Failed to create and update xts master file in the database')
 
     #symbol file(expiry) check
-    sym_df: pd.DataFrame = update_expiry()
+    sym_df = update_expiry()
     if not type(symbols['expiry'][0]) == type(pd.to_datetime(symbols['expiry'][0])):
         symbols['expiry'] = pd.to_datetime(symbols['expiry'], dayfirst=True)
     if not symbols[symbols['expiry'] < today].empty:

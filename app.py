@@ -7,13 +7,13 @@ from fastapi import FastAPI, Query, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
-from common import IST, yesterday, today, logger, fixed_response_dict, round_spot, read_symbols
+import pytz
+from common import IST, yesterday, today, logger, fixed_response_dict, round_spot, read_symbols, trading_time_range, start_time, end_time
 from contracts import get_req_contracts
-from db_ops import DBHandler
+from db_ops import DBHandler, insert_data_df
 from pydantic import BaseModel
 from passlib.context import CryptContext
-
+from remote_db_ops import check_fill_data
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -99,11 +99,25 @@ class ServiceApp:
     def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
                               interval: int = Query(1), cont: bool = Query(False)):
         # logger.info(f'{symbol} {expiry} and cont is {cont}')
+        current_minute = pd.Timestamp.now().replace(second=0, microsecond=0, tzinfo=pytz.timezone('Asia/Kolkata'))
+        if start_time <= current_minute <= end_time:
+            loc = trading_time_range.index(current_minute)
+            extracted_time_range = trading_time_range[:loc+1]
+            check_fill_data(extracted_time_range)
+        elif current_minute > end_time:
+            check_fill_data(trading_time_range)
+
         if cont:
             df_orig = DBHandler.get_straddle_minima(symbol, expiry, start_from=yesterday)
             logger.info(f'\n{symbol} {expiry} {cont} {today} {yesterday} df orig is \n {df_orig}')
 
+            # ----------------------------------------------------------------
+            df_orig['ts'] = df_orig['ts'].dt.tz_convert('Asia/Kolkata')
+            logger.info(f'df_orig timezone is {df_orig["ts"].dtype}')
+            # ----------------------------------------------------------------
+
             df_orig['prev'] = df_orig['ts'] < today
+            logger.info(f'')
             logger.info(f'\n{symbol} {expiry} df orig prev is \n {df_orig}')
 
             df_yest = df_orig[df_orig['prev']==True].copy()
@@ -119,13 +133,8 @@ class ServiceApp:
 
         fixed_resp = fixed_response_dict()
         fixed_df = pd.DataFrame(fixed_resp)
-        # # logger.info(f'\nfixed df is \n{fixed_df.head()}')
-        # df_yest['ts'] = pd.to_datetime(df_yest['ts'])
         df_today['ts'] = pd.to_datetime(df_today['ts'])
         fixed_df['ts'] = pd.to_datetime(fixed_df['ts'])
-        # logger.info(f'changed ts in all 3 df')
-
-        # # mtd-1
         merged_df = pd.merge(fixed_df, df_today, on='ts', how='left', suffixes = ('', '_y'))
         logger.info(f'\n{symbol} {expiry} orig merged df is \n{merged_df}')
 
@@ -141,7 +150,6 @@ class ServiceApp:
         merged_df.fillna(0, inplace=True)
         merged_df['prev'] = False
         logger.info(f'\n{symbol} {expiry} updated merged df is \n{merged_df}')
-
 
         final_df = pd.concat([df_yest, merged_df], axis=0)
         logger.info(f'\n{symbol} {expiry} final df is \n{final_df}')
@@ -271,7 +279,7 @@ class ServiceApp:
                 return empty_json
 
     def fetch_straddle_iv(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
-                          interval: int = Query(5)):
+                          interval: int = Query(1)):
         df = DBHandler.get_straddle_iv_data(symbol, expiry)
         if self.use_otm_iv:
             df['combined_iv'] = df['otm_iv']
@@ -279,8 +287,14 @@ class ServiceApp:
 
     def fetch_straddle_cluster(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=10),
                                interval: int = Query(5)):
+        # current_minute = pd.Timestamp.now().replace(second=0, microsecond=0)
+        # loc = trading_time_range.index(current_minute)
+        # extracted_time_range = trading_time_range[:loc + 1]
+        # check_fill_data(extracted_time_range)
         all_df = DBHandler.get_straddle_iv_data(symbol, expiry, start_from=yesterday)
         all_data = []
+        # today_localized = today.tz_localize('Asia/Kolkata')
+        # print()
         today_df = all_df[all_df['ts'] >= today].copy()
         prev_df = all_df[all_df['ts'] < today].copy()
         if len(prev_df):
@@ -294,6 +308,10 @@ class ServiceApp:
             df = pd.concat(all_data, ignore_index=True, sort=False)
         else:
             df = all_df.iloc[:0]
+        # ----------------------------------------------------------------
+        all_df['ts'] = all_df['ts'].dt.tz_convert('Asia/Kolkata')
+        logger.info(f'all_df timezone is {all_df["ts"].dtype}')
+        # ----------------------------------------------------------------
         if self.use_otm_iv:
             df['combined_iv'] = df['otm_iv']
         today_max_ts = df['ts'].unique().max()

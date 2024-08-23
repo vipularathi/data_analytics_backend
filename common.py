@@ -3,11 +3,10 @@ import os
 import sys
 from datetime import datetime, time, timedelta
 from logging.handlers import TimedRotatingFileHandler
-
+import numpy as np
 import pandas as pd
 import pytz
 from dateutil.relativedelta import relativedelta
-
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 logs_dir = os.path.join(root_dir, 'logs/')
@@ -36,9 +35,12 @@ b_days = b_days[b_days <= datetime.now().replace(hour=0, minute=0, second=0, mic
 today, yesterday = b_days[-1], b_days[-2]
 IST = pytz.timezone('Asia/Kolkata')
 
-
 read_symbols = pd.read_excel(os.path.join(root_dir, 'symbols.xlsx'))
 
+start_time = today.replace(hour = 9, minute =15, second =0)
+end_time = today.replace(hour=15, minute=30, second=0)
+
+threshold_limit = 10000
 
 def define_logger():
     # Logging Definitions
@@ -71,8 +73,8 @@ def fixed_response_dict():
     time_list = []
     try:
         if type(today) == type(pd.Timestamp(today)):
-            start_time = today.replace(hour = 9, minute =15, second =0)
-            end_time = today.replace(hour=15, minute=30, second=0)
+            # start_time = today.replace(hour = 9, minute =15, second =0)
+            # end_time = today.replace(hour=15, minute=30, second=0)
             # logger.info(f'start time - {start_time}\tend time - {end_time}')
             interval = timedelta(minutes = 1)
             current_time = start_time
@@ -86,5 +88,38 @@ def fixed_response_dict():
     except Exception as e:
         logger.error(f'Error in list_dict: {str(e)}')
         return []
+def trading_min_list():
+    trading_time = []
+    try:
+        if type(today) == type(pd.Timestamp(today)):
+            interval = timedelta(minutes = 1)
+            c_time = start_time
+            while c_time <= end_time:
+                trading_time.append(c_time)
+                c_time += interval
+        return trading_time
+    except Exception as e:
+        logger.error(f'Error in trading_min_list: {str(e)}')
+        return []
 
 logger = define_logger()
+trading_time_range = trading_min_list()
+
+# print(today.dtype)
+# # res = trading_min_list()
+# # res_l = [res]
+# # print(res,'\n', type(res[0]), len(res))
+# # # print()
+# i_time =pd.Timestamp.now().replace(second=0, microsecond=0)
+# # print(pd.Timestamp.now().minute)
+# # print(i_time in trading_min_list())
+# print(f'location of {i_time} is {trading_time_range.index(i_time)}')
+# loc = trading_time_range.index(i_time)
+# print(f'location is {loc}')
+# # # np.savetxt(os.path.join(data_dir, 'trading_min_list.csv'), res_l, delimiter=', ', format = '%s')
+# # # dic = {'ts': res}
+# # # df = pd.DataFrame(dic)
+# # # df.to_csv(os.path.join(data_dir, 'trading_min_list.csv'))
+# t_list = trading_time_range[:loc+1]
+# print(t_list)
+# print(today.dtype)
