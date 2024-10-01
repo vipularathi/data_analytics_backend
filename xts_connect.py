@@ -85,3 +85,5 @@ def main():
             client.connect()
         except Exception as exc:
             logger.error(f"Error in connection: {exc}")
+
+at = login()

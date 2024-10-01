@@ -41,11 +41,11 @@ class ServiceApp:
     def add_routes(self):
         self.app.add_api_route('/', methods=['GET'], endpoint=self.default)
         self.app.add_api_route('/symbol', methods=['GET'], endpoint=self.get_symbols)
-        self.app.add_api_route('/straddle/minima', methods=['GET'], endpoint=self.fetch_straddle_minima)
-        self.app.add_api_route('/straddle/minima/table', methods=['GET'],
-                               endpoint=self.fetch_straddle_minima_table)  # NEW
-        self.app.add_api_route('/straddle/iv', methods=['GET'], endpoint=self.fetch_straddle_iv)
-        self.app.add_api_route('/straddle/cluster', methods=['GET'], endpoint=self.fetch_straddle_cluster)
+        self.app.add_api_route('/old/straddle/minima', methods=['GET'], endpoint=self.fetch_old_straddle_minima)
+        self.app.add_api_route('/old/straddle/minima/table', methods=['GET'],
+                               endpoint=self.fetch_old_straddle_minima_table)  # NEW
+        self.app.add_api_route('/old/straddle/iv', methods=['GET'], endpoint=self.fetch_old_straddle_iv)
+        self.app.add_api_route('/old/straddle/cluster', methods=['GET'], endpoint=self.fetch_old_straddle_cluster)
         self.app.add_api_route('/login', methods=['POST'], endpoint=self.userLogin)
 
     @staticmethod
@@ -111,7 +111,7 @@ class ServiceApp:
             self.copy_symbol_expiry_map = self.symbol_expiry_map.copy()
         return self.symbol_expiry_map
 
-    def fetch_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
+    def fetch_old_straddle_minima(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
                               interval: int = Query(1), cont: bool = Query(False)):
         # logger.info(f'{symbol} {expiry} and cont is {cont}')
         if cont:
@@ -232,7 +232,7 @@ class ServiceApp:
         #     difference = 25
         return self._straddle_response(final_df, count=st_cnt, interval=interval, sym= symbol, exp=str(expiry))
 
-    def fetch_straddle_minima_table(self, st_cnt: int = Query(default=None), interval: int = Query(1),
+    def fetch_old_straddle_minima_table(self, st_cnt: int = Query(default=None), interval: int = Query(1),
                                     cont: bool = Query(False), table: bool = Query(True)):
         if self.copy_symbol_expiry_map:
             # # logger.info(f'\nsym exp map is {self.copy_symbol_expiry_map}')
@@ -375,14 +375,14 @@ class ServiceApp:
                     ]
                 return empty_json
 
-    def fetch_straddle_iv(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
+    def fetch_old_straddle_iv(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=None),
                           interval: int = Query(5)):
         df = DBHandler.get_old_straddle_iv_data(symbol, expiry)
         if self.use_otm_iv:
             df['combined_iv'] = df['otm_iv']
         return self._straddle_response(df, count=st_cnt, interval=interval)
 
-    def fetch_straddle_cluster(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=10),
+    def fetch_old_straddle_cluster(self, symbol: str = Query(), expiry: date = Query(), st_cnt: int = Query(default=10),
                                interval: int = Query(5)):
         all_df = DBHandler.get_old_straddle_iv_data(symbol, expiry, start_from=yesterday)
         all_data = []
