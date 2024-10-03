@@ -108,6 +108,19 @@ def read_sql_df(query, params=None, commit=False):
     conn.close()
     return df
 
+def choose_color(value):
+    if value > 0 and value <= 5:
+        return 'lightgreen'
+    elif value > 5 and value <= 10:
+        return 'darkgreen'
+    elif value > 10 and value <= 15:
+        return 'lightyellow'
+    elif value > 15 and value <= 20:
+        return 'darkyellow'
+    elif value > 20 and value <= 50:
+        return 'orange'
+    else:
+        return 'red'
 
 def calculate_table_data(df):
     df1 = df.copy()
@@ -115,13 +128,17 @@ def calculate_table_data(df):
     max_straddle = (df1['combined_premium'].max()).round(2)
     min_straddle = (df1['combined_premium'].min()).round(2)
     live_min = (live - min_straddle).round(2)
+    color_live_min = choose_color(live_min)
     max_live = (max_straddle - live).round(2)
+    color_max_live = choose_color(max_live)
     ret_dict = [{
         'Live': live,
         'Live-Min': live_min,
         'Max-Live': max_live,
         'Max': max_straddle,
-        'Min': min_straddle
+        'Min': min_straddle,
+        'col_max_live': color_max_live,
+        'col_live_min': color_live_min
     }]
     return ret_dict
 
@@ -171,6 +188,7 @@ class DBHandler:
 
     @classmethod
     def get_straddle_minima(cls, symbol, expiry, start_from=today, table: bool = False):
+
         start_from1 = start_from.replace(hour=9, minute=16, second=0)
         query = f"""
             SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv
@@ -224,17 +242,27 @@ class DBHandler:
 
 
     @classmethod
-    def get_straddle_iv_data(cls, symbol, expiry, start_from=today):
-        query = f"""
-                    SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima
-                    FROM {n_tbl_opt_straddle}
-                    WHERE underlying='{symbol}' 
-                    and date(expiry)='{expiry}' 
-                    and "timestamp"::timestamp>='{start_from}' 
-                    and call_oi > '{threshold_limit}'
-                    and put_oi > '{threshold_limit}'
-                    and combined_premium is not null;
-                """
+    def get_straddle_iv_data(cls, symbol, expiry, start_from=today, strd_clst_nnm = False):
+        if strd_clst_nnm:
+            query = f"""
+                SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima, call_oi, put_oi, call_iv, put_iv
+                FROM {n_tbl_opt_straddle}
+                WHERE underlying='{symbol}' 
+                and date(expiry)='{expiry}' 
+                and "timestamp"::timestamp>='{start_from}' 
+                and combined_premium is not null;
+            """
+        else:
+            query = f"""
+                SELECT "timestamp" at time zone 'Asia/Kolkata' as ts, spot, strike, combined_premium, combined_iv, otm_iv, minima
+                FROM {n_tbl_opt_straddle}
+                WHERE underlying='{symbol}' 
+                and date(expiry)='{expiry}' 
+                and "timestamp"::timestamp>='{start_from}' 
+                and call_oi > '{threshold_limit}'
+                and put_oi > '{threshold_limit}'
+                and combined_premium is not null;
+            """
         df = read_sql_df(query)
         return df
 
@@ -261,3 +289,14 @@ class DBHandler:
             result = execute_query(delete_query, params={'cutoff_date': a})
             # # logger.info(result)
         return True
+
+# query1 = f"""
+#     select "timestamp" at time zone 'Asia/Kolkata', strike, spot, call_oi, put_oi, combined_premium from {n_tbl_opt_straddle}
+#     where date(timestamp) = current_date
+#     and underlying = 'NIFTY'
+#     and expiry = '2024-10-31'
+#     order by id
+# """
+#
+# df = read_sql_df(query1)
+# df.to_csv(os.path.join(data_dir, f'NNM_data_fetched.csv'), index=False)

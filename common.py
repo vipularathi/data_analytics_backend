@@ -39,6 +39,8 @@ read_symbols = pd.read_excel(os.path.join(root_dir, 'symbols.xlsx'))
 
 start_time = today.replace(hour = 9, minute =15, second =0)
 end_time = today.replace(hour=15, minute=30, second=0)
+# current_minute = pd.Timestamp.now().replace(second=0, microsecond=0, tzinfo=pytz.timezone('Asia/Kolkata'))
+# print(f'today tz is {today.tzinfo}, start_time tz is {start_time.tzinfo}')
 
 threshold_limit = 10000
 
@@ -105,7 +107,7 @@ def trading_min_list():
 logger = define_logger()
 trading_time_range = trading_min_list()
 
-# print(today.dtype)
+# # print(today.dtype)
 # # res = trading_min_list()
 # # res_l = [res]
 # # print(res,'\n', type(res[0]), len(res))
@@ -121,5 +123,6 @@ trading_time_range = trading_min_list()
 # # # df = pd.DataFrame(dic)
 # # # df.to_csv(os.path.join(data_dir, 'trading_min_list.csv'))
 # t_list = trading_time_range[:loc+1]
-# print(t_list)
-# print(today.dtype)
+# # print(t_list)
+# print(f'start time is {start_time}, current time is {i_time}, end time is {end_time}')
+# print(f'start time type is {type(start_time)}, current time type is {type(i_time)}, end time is {type(end_time)}')

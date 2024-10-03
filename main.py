@@ -43,6 +43,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-    now_ = datetime.now()
+
 
 
