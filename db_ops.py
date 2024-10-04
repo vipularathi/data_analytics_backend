@@ -400,19 +400,53 @@ def read_sql_df(query, params=None, commit=False):
     return df
 
 
+# def calculate_table_data(df):
+#     df1 = df.copy()
+#     live = (df1['combined_premium'].iloc[-1]).round(2)
+#     max_straddle = (df1['combined_premium'].max()).round(2)
+#     min_straddle = (df1['combined_premium'].min()).round(2)
+#     live_min = (live - min_straddle).round(2)
+#     max_live = (max_straddle - live).round(2)
+#     ret_dict = [{
+#         'Live': live,
+#         'Live-Min': live_min,
+#         'Max-Live': max_live,
+#         'Max': max_straddle,
+#         'Min': min_straddle
+#     }]
+#     return ret_dict
+
+def choose_color(value):
+    if value >= 0 and value <= 5:
+        return 'rgb(3, 252, 152)'
+    elif value > 5 and value <= 10:
+        return 'rgb(20, 252, 3)'
+    elif value > 10 and value <= 20:
+        return 'rgb(252, 186, 3)'
+    elif value > 20 and value <= 30:
+        return 'rgb(252, 186, 3)'
+    elif value > 30 and value <= 50:
+        return 'rgb(252, 94, 3)'
+    else:
+        return 'rgb(252, 3, 3)'
+
 def calculate_table_data(df):
     df1 = df.copy()
     live = (df1['combined_premium'].iloc[-1]).round(2)
     max_straddle = (df1['combined_premium'].max()).round(2)
     min_straddle = (df1['combined_premium'].min()).round(2)
     live_min = (live - min_straddle).round(2)
+    color_live_min = choose_color(live_min)
     max_live = (max_straddle - live).round(2)
+    color_max_live = choose_color(max_live)
     ret_dict = [{
         'Live': live,
         'Live-Min': live_min,
         'Max-Live': max_live,
         'Max': max_straddle,
-        'Min': min_straddle
+        'Min': min_straddle,
+        'col_max_live': color_max_live,
+        'col_live_min': color_live_min
     }]
     return ret_dict
 

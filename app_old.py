@@ -41,11 +41,11 @@ class ServiceApp:
     def add_routes(self):
         self.app.add_api_route('/', methods=['GET'], endpoint=self.default)
         self.app.add_api_route('/symbol', methods=['GET'], endpoint=self.get_symbols)
-        self.app.add_api_route('/old/straddle/minima', methods=['GET'], endpoint=self.fetch_old_straddle_minima)
-        self.app.add_api_route('/old/straddle/minima/table', methods=['GET'],
+        self.app.add_api_route('/straddle/minima', methods=['GET'], endpoint=self.fetch_old_straddle_minima)
+        self.app.add_api_route('/straddle/minima/table', methods=['GET'],
                                endpoint=self.fetch_old_straddle_minima_table)  # NEW
-        self.app.add_api_route('/old/straddle/iv', methods=['GET'], endpoint=self.fetch_old_straddle_iv)
-        self.app.add_api_route('/old/straddle/cluster', methods=['GET'], endpoint=self.fetch_old_straddle_cluster)
+        self.app.add_api_route('/straddle/iv', methods=['GET'], endpoint=self.fetch_old_straddle_iv)
+        self.app.add_api_route('/straddle/cluster', methods=['GET'], endpoint=self.fetch_old_straddle_cluster)
         self.app.add_api_route('/login', methods=['POST'], endpoint=self.userLogin)
 
     @staticmethod
@@ -451,23 +451,23 @@ class ServiceApp:
 
 
         combined_iv_list = strike_iv['combined_iv'].tolist()
-        for i in range(len(combined_iv_list[0])): #interpolation
-            for j in range(len(strikes)):
-                if combined_iv_list[j][i] is None:
-                    lesser_iv = None
-                    greater_iv = None
-                    # Finding the lesser strike IV
-                    for k in range(j - 1, -1, -1):
-                        if combined_iv_list[k][i] is not None:
-                            lesser_iv = combined_iv_list[k][i]
-                            break
-                    # Finding the greater strike IV
-                    for k in range(j + 1, len(strikes)):
-                        if combined_iv_list[k][i] is not None:
-                            greater_iv = combined_iv_list[k][i]
-                            break
-                    if lesser_iv is not None and greater_iv is not None:
-                        combined_iv_list[j][i] = (lesser_iv + greater_iv) / 2
+        # for i in range(len(combined_iv_list[0])): #interpolation
+        #     for j in range(len(strikes)):
+        #         if combined_iv_list[j][i] is None:
+        #             lesser_iv = None
+        #             greater_iv = None
+        #             # Finding the lesser strike IV
+        #             for k in range(j - 1, -1, -1):
+        #                 if combined_iv_list[k][i] is not None:
+        #                     lesser_iv = combined_iv_list[k][i]
+        #                     break
+        #             # Finding the greater strike IV
+        #             for k in range(j + 1, len(strikes)):
+        #                 if combined_iv_list[k][i] is not None:
+        #                     greater_iv = combined_iv_list[k][i]
+        #                     break
+        #             if lesser_iv is not None and greater_iv is not None:
+        #                 combined_iv_list[j][i] = (lesser_iv + greater_iv) / 2
 
 
         iv = list(zip(*combined_iv_list))
@@ -568,4 +568,4 @@ service = ServiceApp()
 app = service.app
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host='0.0.0.0', port=8801, workers=5)
+    uvicorn.run('app_old:app', host='0.0.0.0', port=8801, workers=5)
