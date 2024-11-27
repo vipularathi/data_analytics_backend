@@ -20,9 +20,9 @@ def update_expiry():
     current_month = datetime.now().month
     logger.info(f'\n current month is {current_month}')
     n_cur_exp, n_nxt_exp, n_nxt_nxt_exp = [], [], []
-    bn_cur_exp, bn_nxt_exp = [], []
-    fn_cur_exp, fn_nxt_exp = [], []
-    mcn_cur_exp, mcn_nxt_exp = [], []
+    bn_cur_exp, bn_nxt_exp, bn_nxt_nxt_exp = [], [], []
+    fn_cur_exp, fn_nxt_exp, fn_nxt_nxt_exp = [], [], []
+    mcn_cur_exp, mcn_nxt_exp, mcn_nxt_nxt_exp = [], [], []
     for i in range(len(master_df)):
         master_dict_list = [master_df.iloc[i].to_dict()]
         master_dict = master_df.iloc[i]
@@ -30,25 +30,31 @@ def update_expiry():
         if str(master_dict.symbol).upper()=='NIFTY':
             if master_dict.expiry.month==current_month:
                 n_cur_exp.append(master_dict.expiry)
-            elif master_dict.expiry.month==(current_month+1)%12:
+            elif master_dict.expiry.month==(current_month % 12) + 1:
                 n_nxt_exp.append(master_dict.expiry)
-            elif master_dict.expiry.month == (current_month+2)%12:
+            elif master_dict.expiry.month == ((current_month + 1) % 12) + 1:
                 n_nxt_nxt_exp.append(master_dict.expiry)
         elif str(master_dict.symbol).upper()=="BANKNIFTY":
             if master_dict.expiry.month==current_month:
                 bn_cur_exp.append(master_dict.expiry)
-            elif master_dict.expiry.month==(current_month+1)%12:
+            elif master_dict.expiry.month==(current_month%12)+1:
                 bn_nxt_exp.append(master_dict.expiry)
+            elif master_dict.expiry.month==((current_month + 1) % 12) + 1:
+                bn_nxt_nxt_exp.append(master_dict.expiry)
         elif str(master_dict.symbol).upper()=="FINNIFTY":
             if master_dict.expiry.month==current_month:
                 fn_cur_exp.append(master_dict.expiry)
-            elif master_dict.expiry.month==(current_month+1)%12:
+            elif master_dict.expiry.month==(current_month%12)+1:
                 fn_nxt_exp.append(master_dict.expiry)
+            elif master_dict.expiry.month==((current_month + 1) % 12) + 1:
+                fn_nxt_nxt_exp.append(master_dict.expiry)
         elif str(master_dict.symbol).upper()=="MIDCPNIFTY":
             if master_dict.expiry.month==current_month:
                 mcn_cur_exp.append(master_dict.expiry)
-            elif master_dict.expiry.month==(current_month+1)%12:
+            elif master_dict.expiry.month==(current_month%12)+1:
                 mcn_nxt_exp.append(master_dict.expiry)
+            elif master_dict.expiry.month== ((current_month + 1) % 12) + 1:
+                mcn_nxt_nxt_exp.append(master_dict.expiry)
     # print(n_cur_exp)
     # nifty_exp = n_cur_exp+n_nxt_exp+n_nxt_nxt_exp
     # bn_exp = bn_cur_exp+bn_nxt_exp
@@ -74,21 +80,21 @@ def update_expiry():
     if len(bn_cur_exp) == 1:
         bn_exp1 = bn_cur_exp + [bn_nxt_exp[0]]
     elif len(bn_cur_exp) == 0:
-        bn_exp1 = bn_nxt_exp[:2]
+        bn_exp1 = [bn_nxt_exp[0]] + [bn_nxt_nxt_exp[0]]
     else:
         bn_exp1 = bn_cur_exp[:2]
     #----------------------------------------------------------------
     if len(fn_cur_exp) == 1:
         fn_exp1 = fn_cur_exp + [fn_nxt_exp[0]]
     elif len(fn_cur_exp) == 0:
-        fn_exp1 = fn_nxt_exp[:2]
+        fn_exp1 = [fn_nxt_exp[0]] + [fn_nxt_nxt_exp[0]]
     else:
         fn_exp1 = fn_cur_exp[:2]
     #----------------------------------------------------------------
     if len(mcn_cur_exp) == 1:
         mcn_exp1 = mcn_cur_exp + [mcn_nxt_exp[0]]
     elif len(mcn_cur_exp) == 0:
-        mcn_exp1 = mcn_nxt_exp[:2]
+        mcn_exp1 = [mcn_nxt_exp[0]] + [mcn_nxt_nxt_exp[0]]
     else:
         mcn_exp1 = mcn_cur_exp[:2]
     #----------------------------------------------------------------

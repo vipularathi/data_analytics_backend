@@ -13,3 +13,5 @@ MID*.xlsx
 NIFTY*.xlsx
 BANK*.xlsx
 FIN*.xlsx
+*.parquet
+cls
