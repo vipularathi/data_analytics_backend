@@ -13,8 +13,8 @@ rdbms_type = 'postgres'
 
 db_name = f'data_arathi_9_apr_2024'
 pg_user = 'postgres'
-pg_pass = 'root'
-pg_host = '172.16.47.81'
+pg_pass = 'Vivek001'
+pg_host = '172.16.47.54'
 pg_port = '5432'
 
 engine_str = f"postgresql+psycopg2://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{db_name}"

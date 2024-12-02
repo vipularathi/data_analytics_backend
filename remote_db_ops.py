@@ -35,10 +35,10 @@ def get_master():
                     (EXTRACT(month FROM expiry) = EXTRACT(month FROM current_date)
                      AND EXTRACT(year FROM expiry) = EXTRACT(year FROM current_date))
                     OR
-                    (EXTRACT(month FROM expiry) = mod((EXTRACT(month FROM current_date) + 1), 12)
+                    (EXTRACT(month FROM expiry) = mod(EXTRACT(month FROM current_date), 12) + 1
                      AND EXTRACT(year FROM expiry) = EXTRACT(year FROM current_date) + (CASE WHEN EXTRACT(month FROM current_date) = 12 THEN 1 ELSE 0 END))
                     OR
-                    (EXTRACT(month FROM expiry) = mod((EXTRACT(month FROM current_date) + 2), 12)
+                    (EXTRACT(month FROM expiry) = mod((EXTRACT(month FROM current_date) + 1), 12) + 1
                      AND EXTRACT(year FROM expiry) = EXTRACT(year FROM current_date) + (CASE WHEN EXTRACT(month FROM current_date) >= 11 THEN 1 ELSE 0 END))
                 )
             )
